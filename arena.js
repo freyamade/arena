@@ -439,21 +439,17 @@
     function playersSetup(){
         //In the MP version, read in POST data and populate players accordingly
         //In SP, just creates players for testing
-        var sectorMap = [
-            //x        y
-            [width / 4, height / 4],
-            [(3 * width) / 4, height / 4],
-            [width / 4, (3 * height) / 4],
-            [(3 * width) / 4, (3 * height) / 4]
-        ]
         $.ajax({
             url: 'cgi-bin/single-player.py',
             dataType : 'json',
+            data : {
+                width : width,
+                height : height
+            },
             success : function(json){
                 json.players.forEach(function(player, index){
-                    var coords = sectorMap[player.sector - 1];
                     players[index] = new Player(
-                        coords[0], coords[1], index, player.colour, player.userName);
+                        player.x, player.y, index, player.colour, player.userName);
                     if(player.local){
                         local = index;
                     }
