@@ -1,0 +1,25 @@
+body {
+  -webkit-user-select: none;
+     -moz-user-select: -moz-none;
+      -ms-user-select: none;
+          user-select: none;
+}
+
+canvas{
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    border: 2px solid black;
+    cursor: crosshair;
+}
+
+table{
+    width: 650px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+}
+
+th, td{
+    border: 1px solid black;
+}
