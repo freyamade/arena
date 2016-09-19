@@ -139,11 +139,11 @@
                 players[this.owner].bulletDestroyed(number);
             },
 
-            fire : function(e){
+            fire : function(coords){
                 //Get the angle of motion for the bullet and set it moving
                 var a = this.getAngle(
-                    e.layerX,
-                    e.layerY);
+                    coords.x,
+                    coords.y);
                 this.xChange = this.speed * Math.cos(a);
                 this.yChange = this.speed * Math.sin(a) * -1;
             },
@@ -316,7 +316,7 @@
                 });
             },
 
-            fireBullet : function(e){
+            fireBullet : function(coords){
                 //Checks if a new bullet can be fired, and fires one
                 if(this.numBullets > 0){
                     var i = 0;
@@ -331,7 +331,7 @@
                         this.id,
                         i);
                     this.numBullets -= 1;
-                    this.bullets[i].fire(e);
+                    this.bullets[i].fire(coords);
                 }
             },
 
@@ -392,6 +392,17 @@
         return true;
     }
 
+    function getMouseCoords(e){
+        var x;
+        var y;
+        x = e.pageX - canvas.offsetLeft;
+        y = e.pageY - canvas.offsetTop;
+        return {
+            x : x,
+            y : y
+        }
+    }
+
     //Running Code / Game Methods
     window.addEventListener('DOMContentLoaded', init, false);
 
@@ -403,7 +414,6 @@
         width = canvas.width;
         displayRows = $('tbody tr');
 
-        //Add event listeners
         canvas.addEventListener('click', playerFire, false);
         window.addEventListener('keydown', playerMove, false);
         window.addEventListener('keyup', playerStop, false);
@@ -440,7 +450,6 @@
             url: 'cgi-bin/single-player.py',
             dataType : 'json',
             success : function(json){
-                console.log(json);
                 json.players.forEach(function(player, index){
                     var coords = sectorMap[player.sector - 1];
                     players[index] = new Player(
@@ -451,14 +460,12 @@
                 });
                 //Draw the names of players into the table
                 players.forEach(function(player, index){
-                    console.log(player);
                     if(player.isAlive()){
                         var row = $(displayRows[player.id]);
                         row.css({'color': player.colour});
                         row.find('.name-container').html(player.getUserName());
                     }
                 });
-                console.log(local);
                 ready = true;
             }
         });
@@ -475,6 +482,23 @@
 
     function draw(){
         context.clearRect(0, 0, width, height);
+        //Draw the walls
+        context.beginPath();
+        context.moveTo(0, height/2);
+        context.lineTo((3 * width/8), height/2);
+        context.stroke();
+        context.beginPath();
+        context.moveTo(width, height/2);
+        context.lineTo((5 * width/8), height/2);
+        context.stroke();
+        context.beginPath();
+        context.moveTo(width/2, 0);
+        context.lineTo(width/2, (3 * height)/8);
+        context.stroke();
+        context.beginPath();
+        context.moveTo(width/2, height);
+        context.lineTo(width/2, (5*height)/8);
+        context.stroke();
         //Draw the players, which draw their own bullets
         players.forEach(function(player, index){
             if(player.isAlive()){
@@ -495,7 +519,8 @@
 
     function playerFire(e){
         //Wrapper for player.fireBullet
-        players[local].fireBullet(e);
+        var coords = getMouseCoords(e);
+        players[local].fireBullet(coords);
     }
 
     function playerMove(e){
