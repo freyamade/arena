@@ -462,7 +462,7 @@
                         row.find('.name-container').html(player.getUserName());
                     }
                 });
-                ready = true;
+                ready = json.ready;
             }
         });
     }

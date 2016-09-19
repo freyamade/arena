@@ -22,5 +22,5 @@ players = [
     {"x": (3 * width) / 4, "y": (3 * height) / 4, "colour": "orange",
      "userName": "Bot-3", "local": True}
 ]
-data = {"players": players}
+data = {"players": players, "ready": True}
 print(dumps(data))
