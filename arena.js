@@ -393,10 +393,9 @@
     }
 
     function getMouseCoords(e){
-        var x;
-        var y;
-        x = e.pageX - canvas.offsetLeft;
-        y = e.pageY - canvas.offsetTop;
+        //Calculate the coordinates of the mouse click with regard to canvas
+        var x = e.pageX - canvas.offsetLeft;
+        var y = e.pageY - canvas.offsetTop;
         return {
             x : x,
             y : y
@@ -418,9 +417,6 @@
         window.addEventListener('keydown', playerMove, false);
         window.addEventListener('keyup', playerStop, false);
 
-        //Setup Players
-        playersSetup();
-
         //Run the ajax update every 16ms, just before the update method
         //ajaxInterval = window.setInterval(getData, 16);
 
@@ -433,6 +429,10 @@
         if(ready){
             clearInterval(updateInterval);
             updateInterval = window.setInterval(update, 16);
+        }
+        else{
+            //Query for initial player data
+            playersSetup();
         }
     }
 

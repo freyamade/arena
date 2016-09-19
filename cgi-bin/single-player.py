@@ -14,13 +14,13 @@ height = int(data.getfirst('height', '650'))
 # Be sure to mark the local player
 players = [
     {"x": width / 4, "y": height / 4, "colour": "blue", "userName": "Guest",
-     "local": False},
+     "local": True},
     {"x": (3 * width) / 4, "y": height / 4, "colour": "red",
      "userName": "Bot-1", "local": False},
     {"x": width / 4, "y": (3 * height) / 4, "colour": "green",
      "userName": "Bot-2", "local": False},
     {"x": (3 * width) / 4, "y": (3 * height) / 4, "colour": "orange",
-     "userName": "Bot-3", "local": True}
+     "userName": "Bot-3", "local": False}
 ]
 data = {"players": players, "ready": True}
 print(dumps(data))
