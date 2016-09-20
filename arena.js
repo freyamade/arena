@@ -212,7 +212,7 @@
             y : y - (playerSize / 2),
             xChange : 0,
             yChange : 0,
-            health : 100,
+            health : 100.00,
             bullets : [null, null, null],
             numBullets : maxBullets,
             id : index,
@@ -391,12 +391,6 @@
                 else if(this.y + this.size > height){
                     this.y = height - this.size;
                 }
-
-                //Now check the obstacles
-                for(var i = 0; i < obstacles.length; i++){
-                    //Check for collisions
-                    obstacles[i].checkPlayerCollision(this);
-                }
             },
 
             playerCollision : function(){
@@ -410,7 +404,6 @@
             hit : function(bullet){
                 //Player hit by bullet, subtract health accordingly
                 var damage = bullet.getDamage();
-                console.log(damage);
                 this.health = (this.health - damage).toFixed(2);
                 if(this.health <= 0){
                     this.destroy();
@@ -477,37 +470,6 @@
                 }
                 if(pos !== null){
                     bullet.collision(this.horizontal, pos);
-                }
-            },
-
-            checkPlayerCollision : function(player){
-                //Has 'player' hit this wall?
-                //TODO
-                var data = player.getMovementData();
-                if(this.horizontal && data.x >= this.x1 && data.x <= this.x2){
-                    //Check the y coords
-                    if(data.y >= this.y1 && data.y + data.yChange < this.y1){
-                        //Moving up, hit bottom of wall
-                        player.setY(this.y1);
-                    }
-                    else if(data.y + bulletSize <= this.y1
-                        && data.y + bulletSize + data.yChange > this.y1){
-                        //Moving down, hit top of wall
-                        player.setY(this.y1 - bulletSize);
-                    }
-                }
-                else if(!this.horizontal && data.y >= this.y1
-                    && data.y <= this.y2){
-                    //Check the x coords
-                    if(data.x >= this.x1 && data.x + data.xChange < this.x1){
-                        //Moving left, hit right of wall
-                        player.setX(this.x1);
-                    }
-                    else if(data.x + bulletSize <= this.x1
-                        && data.x + bulletSize + data.xChange > this.x1){
-                        //Moving right, hit left of wall
-                        player.setX(this.x1 - bulletSize);
-                    }
                 }
             }
         }
