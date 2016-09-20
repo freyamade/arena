@@ -478,23 +478,7 @@
 
     function draw(){
         context.clearRect(0, 0, width, height);
-        //Draw the walls
-        context.beginPath();
-        context.moveTo(0, height/2);
-        context.lineTo((3 * width/8), height/2);
-        context.stroke();
-        context.beginPath();
-        context.moveTo(width, height/2);
-        context.lineTo((5 * width/8), height/2);
-        context.stroke();
-        context.beginPath();
-        context.moveTo(width/2, 0);
-        context.lineTo(width/2, (3 * height)/8);
-        context.stroke();
-        context.beginPath();
-        context.moveTo(width/2, height);
-        context.lineTo(width/2, (5*height)/8);
-        context.stroke();
+
         //Draw the players, which draw their own bullets
         players.forEach(function(player, index){
             if(player.isAlive()){
