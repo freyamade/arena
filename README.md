@@ -15,3 +15,9 @@ Each of these modules has their own branch and projects page.
 When you've been invited to the organisation and repo, go to the project page for the module(s) you want to help out in and add a note with your name to the column labelled People working on this module.
 
 The project pages are used to keep everything together for each module, to post notes to the team and stuff like that.
+
+#Setting up local branches to copy remote branches
+If you need to setup a local branch to match a branch hosted here, use the following code;
+```git branch --track game-code origin/game-code```
+
+Replace ___game-code___ with whatever branch you are working on
