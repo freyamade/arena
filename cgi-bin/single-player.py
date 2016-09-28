@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Script that will return the needed content to run the game in single player
-from cgitb import enable
-enable()
+# from cgitb import enable
+# enable()
 from json import dumps
 from cgi import FieldStorage
 from os import environ
