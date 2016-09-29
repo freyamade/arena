@@ -4,6 +4,7 @@
     //Global Variables
     //Game switch
     var ready = false;
+    var countdownTimer = 3;
     //HTML Elements
     var canvas;
     var context;
@@ -12,7 +13,9 @@
     var displayRows = [];
     //Bullet Constants
     var bulletSize = 5;
-    var bulletSpeed = 5;
+    var bulletSpeed = 25; //Messed up with some of the maths
+    var maxBounces = 3;
+    var maxDamage = 10;
     //Player Constants
     var playerSize = 20;
     var playerSpeed = 4;
@@ -27,6 +30,8 @@
         left : false,
         right : false
     };
+    //Obstacles
+    var obstacles = [];
     //Vars for game over
     var updateInterval;
     var ajaxInterval;
@@ -45,12 +50,29 @@
             speed : bulletSpeed,
             xChange : 0,
             yChange : 0,
-            bounces : 3,
+            bounces : maxBounces,
             //Maintain data on where this bullet instance will live
             owner : owner,
             number : number,
 
             //Instance Methods
+            getMovementData : function(){
+                return {
+                    x : this.x,
+                    y : this.y,
+                    xChange : this.xChange,
+                    yChange : this.yChange
+                }
+            },
+
+            getDamage : function(){
+                var damage = maxDamage;
+                for(var i = 0; i < (maxBounces - this.bounces); i ++){
+                    damage *= 0.8;
+                }
+                return damage;
+            },
+
             draw : function(){
                 //Draw the bullet
                 context.fillRect(this.x, this.y, this.size, this.size);
@@ -58,8 +80,8 @@
                 this.checkWalls();
                 this.checkPlayers();
                 //Update position for the next frame
-                this.x += this.speed * this.xChange;
-                this.y += this.speed * this.yChange;
+                this.x += this.xChange;
+                this.y += this.yChange;
             },
 
             checkWalls : function(){
@@ -68,19 +90,25 @@
                 //Will need to change when we add other walls and such
                 if(this.x < 0){
                     //Hit left wall
-                    this.collision('left');
+                    this.collision(false, 0);
                 }
                 else if(this.x + this.size > width){
                     //Hit right wall
-                    this.collision('right');
+                    this.collision(false, width - this.size);
                 }
                 else if(this.y < 0){
                     //Hit top wall
-                    this.collision('top');
+                    this.collision(true, 0);
                 }
                 else if(this.y + this.size > height){
                     //Hit bottom wall
-                    this.collision('bottom');
+                    this.collision(true, height - this.size);
+                }
+
+                //Check obstacles here too
+                for(var i = 0; i < obstacles.length; i++){
+                    //Check for collisions
+                    obstacles[i].checkBulletCollision(this);
                 }
             },
 
@@ -99,8 +127,9 @@
                 }
             },
 
-            collision : function(wall){
-                //Handle a collision against the 'wall' wall
+            collision : function(horizontal, pos){
+                //Handle a collision against a 'horizontal' wall
+                //and reset the correct coordinate to 'pos'
                 //Ensure the bullet can bounce again
                 if(this.bounces <= 0){
                     this.destroy()
@@ -108,27 +137,13 @@
                 }
                 //Get the wall it has collided with, change bullet direction
                 //and place it back onto the board
-                switch(wall){
-                    case 'left':
-                        //Reverse x
-                        this.xChange *= -1;
-                        this.x = 0;
-                        break;
-                    case 'right':
-                        //Reverse x
-                        this.xChange *= -1;
-                        this.x = width - this.size;
-                        break;
-                    case 'top':
-                        //Reverse y
-                        this.yChange *= -1;
-                        this.y = 0;
-                        break;
-                    case 'bottom':
-                        //Reverse y
-                        this.yChange *= -1;
-                        this.y = height - this.size;
-                        break;
+                if(horizontal){
+                    this.yChange *= -1;
+                    this.y = pos;
+                }
+                else{
+                    this.xChange *= -1;
+                    this.x = pos;
                 }
                 this.speed *= 0.8;
                 this.bounces -= 1;
@@ -197,7 +212,7 @@
             y : y - (playerSize / 2),
             xChange : 0,
             yChange : 0,
-            health : 100,
+            health : 100.00,
             bullets : [null, null, null],
             numBullets : maxBullets,
             id : index,
@@ -224,6 +239,26 @@
             isAlive : function(){
                 //Public getter for Alive state
                 return this.alive;
+            },
+
+            getMovementData : function(){
+                //Public getter for position
+                return {
+                    x : this.x,
+                    y : this.y,
+                    xChange : this.xChange,
+                    yChange : this.yChange,
+                }
+            },
+
+            setX : function(x){
+                //Public setter for this.x
+                this.x = x;
+            },
+
+            setY : function(y){
+                //Public setter for this.y
+                this.y = y;
             },
 
             move : function(e){
@@ -368,7 +403,7 @@
 
             hit : function(bullet){
                 //Player hit by bullet, subtract health accordingly
-                var damage = bullet.speed * 2;
+                var damage = bullet.getDamage();
                 this.health = (this.health - damage).toFixed(2);
                 if(this.health <= 0){
                     this.destroy();
@@ -378,6 +413,64 @@
             destroy : function(){
                 this.alive = false;
                 playersAlive -= 1;
+            }
+        }
+    }
+
+    function Obstacle(x1, y1, x2, y2){
+        //Create an obstacle which will be drawn as a straight line
+        //Allow for only straight lines to begin
+        //When creating obstacles, make sure that (x1, y1) is closer to (0, 0)
+        return {
+            //Handling for these vars -> x1 < x2 || y1 < y2
+            x1 : x1,
+            y1 : y1,
+            x2 : x2,
+            y2 : y2,
+            //Used for determining bouces
+            horizontal : y1 === y2 ? true : false,
+
+            //Instance methods
+            draw : function(){
+                //Draw the obstacle
+                context.beginPath();
+                context.moveTo(x1, y1);
+                context.lineTo(x2, y2);
+                context.stroke();
+            },
+
+            checkBulletCollision : function(bullet){
+                //Has 'bullet' hit this wall?
+                var data = bullet.getMovementData();
+                var pos = null;
+                if(this.horizontal && data.x >= this.x1 && data.x <= this.x2){
+                    //Check the y coords
+                    if(data.y >= this.y1 && data.y + data.yChange < this.y1){
+                        //Moving up, hit bottom of wall
+                        pos = this.y1;
+                    }
+                    else if(data.y + bulletSize <= this.y1
+                        && data.y + bulletSize + data.yChange > this.y1){
+                        //Moving down, hit top of wall
+                        pos = this.y1 - bulletSize;
+                    }
+                }
+                else if(!this.horizontal && data.y >= this.y1
+                    && data.y <= this.y2){
+                    //Check the x coords
+                    if(data.x >= this.x1 && data.x + data.xChange < this.x1){
+                        //Moving left, hit right of wall
+                        pos = this.x1;
+                    }
+                    else if(data.x + bulletSize <= this.x1
+                        && data.x + bulletSize + data.xChange > this.x1){
+                        //Moving right, hit left of wall
+                        pos = this.x1 - bulletSize;
+                    }
+                }
+                if(pos !== null){
+                    bullet.collision(this.horizontal, pos);
+                }
             }
         }
     }
@@ -405,6 +498,7 @@
     //Running Code / Game Methods
     window.addEventListener('DOMContentLoaded', init, false);
 
+    //Game initialisation
     function init(){
         //Initialise global variables
         canvas = document.querySelector('canvas');
@@ -413,27 +507,91 @@
         width = canvas.width;
         displayRows = $('tbody tr');
 
-        canvas.addEventListener('click', playerFire, false);
-        window.addEventListener('keydown', playerMove, false);
-        window.addEventListener('keyup', playerStop, false);
+        //Create obstacles
+        createObstacles();
 
-        //Run the ajax update every 16ms, just before the update method
-        //ajaxInterval = window.setInterval(getData, 16);
-
-        //We're gonna try and run this game at 60fps (16ms)
-        //If the ajax can't keep up, lower to 30fps (33ms)
+        //Query for new players every .1s until game is ready
         updateInterval = window.setInterval(readyGame, 100);
     }
 
     function readyGame(){
         if(ready){
             clearInterval(updateInterval);
-            updateInterval = window.setInterval(update, 16);
+            //Set up game
+            startGame();
         }
         else{
             //Query for initial player data
             playersSetup();
         }
+    }
+
+    function startGame(){
+        //Run the ajax update every 16ms, just before the update method
+        ajaxInterval = window.setInterval(updatePlayers, 16);
+        //Run the countdown and then start the game
+        updateInterval = setInterval(countdown, 1000);
+    }
+
+    function countdown(){
+        //Display the countdown and when the countdown hits 0, start the game
+        if(countdownTimer > 0){
+            context.clearRect(0, 0, width, height);
+            context.font = '50px Verdana';
+            context.textAlign = 'center';
+            context.fillText(countdownTimer, (width / 2), (height / 2));
+            countdownTimer --;
+        }
+        else{
+            //Remove old updateInterval
+            clearInterval(updateInterval);
+            //Add event listeners
+            canvas.addEventListener('click', playerFire, false);
+            window.addEventListener('keydown', playerMove, false);
+            window.addEventListener('keyup', playerStop, false);
+            //We're gonna try and run this game at 60fps (16ms)
+            //If the ajax can't keep up, lower to 30fps (33ms)
+            updateInterval = window.setInterval(update, 16);
+        }
+    }
+
+    //Obstacle creation
+    function createObstacles(){
+        //Later on will be sent by JSON from pre-designed maps
+        //For now, hard code and test bouncing
+
+        // context.beginPath();
+        // context.moveTo(width/2, height/2);
+        // context.lineTo(width/8, height/2);
+        // context.stroke();
+        obstacles.push(
+            new Obstacle(width/8, height/2, width/2, height/2));
+
+        // context.beginPath();
+        // context.moveTo(width/2, height/2);
+        // context.lineTo((7 * width/8), height/2);
+        // context.stroke();
+        obstacles.push(
+            new Obstacle(width/2, height/2, (7 * width)/8, height/2));
+
+        // context.beginPath();
+        // context.moveTo(width/2, 0);
+        // context.lineTo(width/2, (3 * height)/8);
+        // context.stroke();
+        obstacles.push(
+            new Obstacle(width/2, 0, width/2, (3 * height)/8));
+
+        // context.beginPath();
+        // context.moveTo(width/2, height);
+        // context.lineTo(width/2, (5*height)/8);
+        // context.stroke();
+        obstacles.push(
+            new Obstacle(width/2, (5 * height)/8, width/2, height));
+    }
+
+    //Player data handlers
+    function updatePlayers(){
+        //Pull data from the server and put it into the players list
     }
 
     function playersSetup(){
@@ -442,11 +600,14 @@
         $.ajax({
             url: 'cgi-bin/single-player.py',
             dataType : 'json',
+            //Only run method if new player has entered the lobby
+            ifModified : true,
             data : {
                 width : width,
                 height : height
             },
             success : function(json){
+                //Update the players array with the json data
                 json.players.forEach(function(player, index){
                     players[index] = new Player(
                         player.x, player.y, index, player.colour, player.userName);
@@ -462,11 +623,15 @@
                         row.find('.name-container').html(player.getUserName());
                     }
                 });
+                //Check if the game is ready
                 ready = json.ready;
+                //Update the displays with health and bullets
+                updateDisplays();
             }
         });
     }
 
+    //Game loop methods
     function update(){
         //Main Game Loop
         //Check if game is over
@@ -478,7 +643,11 @@
 
     function draw(){
         context.clearRect(0, 0, width, height);
-
+        //Draw the walls
+	context.strokeStyle = 'blue';
+        obstacles.forEach(function(obstacle, index){
+            obstacle.draw();
+        });
         //Draw the players, which draw their own bullets
         players.forEach(function(player, index){
             if(player.isAlive()){
@@ -497,6 +666,7 @@
         });
     }
 
+    //Control methods
     function playerFire(e){
         //Wrapper for player.fireBullet
         var coords = getMouseCoords(e);
@@ -513,6 +683,7 @@
         players[local].stop(e);
     }
 
+    //Game state methods
     function isGameOver(){
         if(playersAlive === 1){
             gameOver();
@@ -520,9 +691,9 @@
     }
 
     function gameOver(){
-        context.clearRect(0, 0, width, height);
         clearInterval(updateInterval);
-        // clearInterval(ajaxInterval);
+        context.clearRect(0, 0, width, height);
+        clearInterval(ajaxInterval);
         //Get the remaining player
         var player;
         for(var i = 0; i < players.length; i ++){
