@@ -644,6 +644,7 @@
     function draw(){
         context.clearRect(0, 0, width, height);
         //Draw the walls
+	context.strokeStyle = 'blue';
         obstacles.forEach(function(obstacle, index){
             obstacle.draw();
         });
