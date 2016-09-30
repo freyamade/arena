@@ -118,7 +118,7 @@
                 for(var i = 0; i < players.length; i ++){
                     if(i !== local){
                         var player = players[i];
-                        if(player.isAlive() && collisionBetween(this, player)){
+                        if(player !== null && player.isAlive() && collisionBetween(this, player)){
                             this.destroy();
                             players[i].hit(this);
                             break;
@@ -592,19 +592,30 @@
     //Player data handlers
     function updatePlayers(){
         //Pull data from the server and put it into the players list
+        console.log(JSON.stringify(players[local]));
+        $.ajax({
+            url:'game_backend.py',
+            dataType: 'json',
+            data: {
+                player: JSON.stringify(players[local])
+            },
+            success: function(json){
+                console.log(json);//.players);
+            },
+            error: function(req, text){
+                console.log('update ' + text);
+            }
+        });
     }
 
     function playersSetup(){
         //In the MP version, read in POST data and populate players accordingly
         //In SP, just creates players for testing
         $.ajax({
-            url: 'cgi-bin/single-player.py',
+            url: 'game_backend.py',
             dataType : 'json',
-            //Only run method if new player has entered the lobby
-            ifModified : true,
             data : {
-                width : width,
-                height : height
+                start_up : 'True'
             },
             success : function(json){
                 //Update the players array with the json data
@@ -617,7 +628,7 @@
                 });
                 //Draw the names of players into the table
                 players.forEach(function(player, index){
-                    if(player.isAlive()){
+                    if(player !== null && player.isAlive()){
                         var row = $(displayRows[player.id]);
                         row.css({'color': player.colour});
                         row.find('.name-container').html(player.getUserName());
@@ -627,6 +638,9 @@
                 ready = json.ready;
                 //Update the displays with health and bullets
                 updateDisplays();
+            },
+            error: function(req, text){
+                console.log('setup ' + text);
             }
         });
     }
@@ -650,7 +664,7 @@
         });
         //Draw the players, which draw their own bullets
         players.forEach(function(player, index){
-            if(player.isAlive()){
+            if(player !== null && player.isAlive()){
                 player.draw();
             }
         });
@@ -659,10 +673,12 @@
     function updateDisplays(){
         //Ensure the displays are up to date
         players.forEach(function(player, index){
-            var health = player.isAlive() ? player.getHealth() : 0;
-            var row = $(displayRows[player.id]);
-            row.find('.health-container').html(health);
-            row.find('.bullets-container').html(player.getBullets());
+            if(player !== null){
+                var health = player.isAlive() ? player.getHealth() : 0;
+                var row = $(displayRows[player.id]);
+                row.find('.health-container').html(health);
+                row.find('.bullets-container').html(player.getBullets());
+            }
         });
     }
 
@@ -697,7 +713,7 @@
         //Get the remaining player
         var player;
         for(var i = 0; i < players.length; i ++){
-            if(players[i].isAlive()){
+            if(players[i] !== null && players[i].isAlive()){
                 player = players[i];
             }
         }

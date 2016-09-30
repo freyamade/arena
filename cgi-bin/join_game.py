@@ -7,8 +7,8 @@ from shelve import open as shelf
 def join(filename):
     # Filename will be null if the call is from list rather than create
     cookie = SimpleCookie()
-    if 'HTTP_COOKIE' in environ:
-        cookie.load(environ['HTTP_COOKIE'])
+    # if 'HTTP_COOKIE' in environ:
+    #     cookie.load(environ['HTTP_COOKIE'])
     cookie['filename'] = filename
 
     # May change when map creation implemented
@@ -27,6 +27,7 @@ def join(filename):
         ]
         players = []
         joinable = True
+        gamefile['started'] = False
     else:
         coords = gamefile['coords']
         players = gamefile['players']
@@ -46,8 +47,9 @@ def join(filename):
             'y': player_coords[1],
             'userName': 'Player %i' % (len(players) + 1),
             'colour': '#%s' % (''.join([choice('0123456789ABCDEF')
-                                        for x in range(6)]))
-            # Local will be handled in another file
+                                        for x in range(6)])),
+            'ready': False,
+            'local': False
         })
         gamefile['players'] = players
         gamefile['coords'] = coords

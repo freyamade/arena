@@ -17,15 +17,25 @@
                 dataType: 'json',
                 ifModified : true,
                 success : function(json){
-                    //Since it only succeeds if modified, just remove and redraw every row in the table any time things change
-                    $(players).empty();
-                    json.players.forEach(function(player, index){
-                        var playerUser = '?';
-                        if(Number(getCookie('player_num')) === index){
-                            playerUser = 'You';
-                        }
-                        $(players).append('<tr style="colour: ' + player.colour + ';"><td>' + player.userName + '</td><td>' + playerUser + '</td></tr>');
-                    });
+                    if(!json.started){
+                        //Since it only succeeds if modified, just remove and redraw every row in the table any time things change
+                        $(players).empty();
+                        $('button').prop('disabled', true);
+                        json.players.forEach(function(player, index){
+                            if(index > 0){
+                                $('button').prop('disabled', false);
+                            }
+                            var playerUser = '?';
+                            if(Number(getCookie('player_num')) === index){
+                                playerUser = 'You';
+                            }
+                            $(players).append('<tr style="colour: ' + player.colour + ';"><td>' + player.userName + '</td><td>' + playerUser + '</td></tr>');
+                        });
+                    }
+                    else{
+                        // console.log(window.location);
+                        window.location = 'game.html';
+                    }
                 }
             }
         )

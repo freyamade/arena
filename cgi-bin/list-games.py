@@ -27,17 +27,20 @@ if len(filenames) > 0:
     output = '<table><thead><tr><th>Game</th><th>Players</th><th>Join</th></tr></thead><tbody>'
     num = 1
     for filename in filenames:
-        gamefile = shelf('../games/' + filename)
-        players_list = '<ul>'
-        for player in gamefile['players']:
-            players_list += '<li style="color: %s;"">%s</li>' % (player['colour'], player['userName'])
-        players_list += '</ul>'
-        status = ''
-        if gamefile['joinable']:
-            status = join_form_template % (filename)
-        else:
-            status = cant_join
-        output += '<tr><td>%i</td><td>%s</td><td>%s</td></tr>' % (num, players_list, status)
+        try:
+            gamefile = shelf('../games/' + filename)
+            players_list = '<ul>'
+            for player in gamefile['players']:
+                players_list += '<li style="color: %s;"">%s</li>' % (player['colour'], player['userName'])
+            players_list += '</ul>'
+            status = ''
+            if gamefile['joinable']:
+                status = join_form_template % (filename)
+            else:
+                status = cant_join
+            output += '<tr><td>%i</td><td>%s</td><td>%s</td></tr>' % (num, players_list, status)
+        except KeyError:
+            pass
     output += '</tbody></table>'
 
 else:
