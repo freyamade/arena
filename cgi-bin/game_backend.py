@@ -6,6 +6,7 @@ from os import environ
 from http.cookies import SimpleCookie
 from cgi import FieldStorage
 from json import dumps, loads
+from threading import Lock
 
 # Get the version of this file that is required, and return the necessary
 # json
@@ -17,8 +18,10 @@ cookie.load(environ['HTTP_COOKIE'])
 filename = cookie['filename'].value
 player_num = int(cookie['player_num'].value)
 
-# Open the shelf and send the json
-gamefile = shelf('../games/' + filename, writeback=True)
+# Open the shelf and send the json, using mutexes
+mutex = Lock()
+mutex.acquire()
+gamefile = shelf('../games/' + filename)
 if start_up:
     # Send out the json for all the players with the local key
     # Once the game starts, prevent it from being joined
@@ -40,12 +43,12 @@ if start_up:
 
 else:
     # Update the player that is sent and send back all players
-    player = form_data.getlist('player')
+    player = form_data.getfirst('player')
     if player:
-        # player = loads(player)
+        player = loads(player)
         players = gamefile['players']
-        # players[player['id']] = player
-        # gamefile['players'] = players
+        players[player['id']] = player
+        gamefile['players'] = players
         data = {'players': players}
 
 
@@ -53,6 +56,7 @@ else:
 #     data = {'error': e}
 
 gamefile.close()
+mutex.release()
 print('Content-Type: application/json; charset=utf-8')
 print()
 print(dumps(data))
