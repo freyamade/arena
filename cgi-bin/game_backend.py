@@ -21,7 +21,7 @@ player_num = int(cookie['player_num'].value)
 # Open the shelf and send the json, using mutexes
 mutex = Lock()
 mutex.acquire(False)
-gamefile = shelf('../games/' + filename)
+gamefile = shelf('../games/' + filename, writeback = True)
 if start_up:
     # Send out the json for all the players with the local key
     # Once the game starts, prevent it from being joined

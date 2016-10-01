@@ -528,7 +528,8 @@
 
     function startGame(){
         //Run the ajax update every 16ms, just before the update method
-        ajaxInterval = window.setInterval(updatePlayers, 16);
+        // ajaxInterval = window.setInterval(updatePlayers, 16);
+        updatePlayers(); //Will call itself after success, or after 1 second on failure
         //Run the countdown and then start the game
         updateInterval = setInterval(countdown, 1000);
     }
@@ -592,20 +593,19 @@
     //Player data handlers
     function updatePlayers(){
         //Pull data from the server and put it into the players list
-        var playerString = JSON.stringify(players[local]);
-        var mid = Math.floor(playerString.length / 2);
         $.ajax({
             url:'game_backend.py',
             dataType: 'json',
             data: {
-                player: playerString.substring(0, mid),
-                player2: playerString.substring(mid)
+                player: JSON.stringify(players[local])
             },
             success: function(json){
                 console.log(json);//.players);
+                updatePlayers();
             },
             error: function(req, text){
                 console.log('update ' + req.responseText);
+                window.setTimeout(1000, updatePlayers);
             }
         });
     }
