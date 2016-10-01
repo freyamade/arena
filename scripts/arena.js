@@ -592,18 +592,20 @@
     //Player data handlers
     function updatePlayers(){
         //Pull data from the server and put it into the players list
-        console.log(JSON.stringify(players[local]));
+        var playerString = JSON.stringify(players[local]);
+        var mid = Math.floor(playerString.length / 2);
         $.ajax({
             url:'game_backend.py',
             dataType: 'json',
             data: {
-                player: JSON.stringify(players[local])
+                player: playerString.substring(0, mid),
+                player2: playerString.substring(mid)
             },
             success: function(json){
                 console.log(json);//.players);
             },
             error: function(req, text){
-                console.log('update ' + text);
+                console.log('update ' + req.responseText);
             }
         });
     }

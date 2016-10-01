@@ -20,7 +20,7 @@
                     if(!json.started){
                         //Since it only succeeds if modified, just remove and redraw every row in the table any time things change
                         $(players).empty();
-                        $('button').prop('disabled', true);
+                        // $('button').prop('disabled', true);
                         json.players.forEach(function(player, index){
                             if(index > 0){
                                 $('button').prop('disabled', false);
@@ -33,7 +33,6 @@
                         });
                     }
                     else{
-                        // console.log(window.location);
                         window.location = 'game.html';
                     }
                 }

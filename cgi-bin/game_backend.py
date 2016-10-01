@@ -20,7 +20,7 @@ player_num = int(cookie['player_num'].value)
 
 # Open the shelf and send the json, using mutexes
 mutex = Lock()
-mutex.acquire()
+mutex.acquire(False)
 gamefile = shelf('../games/' + filename)
 if start_up:
     # Send out the json for all the players with the local key
@@ -43,9 +43,11 @@ if start_up:
 
 else:
     # Update the player that is sent and send back all players
+    # Receive player data in two pieces
     player = form_data.getfirst('player')
-    if player:
-        player = loads(player)
+    player2 = form_data.getfirst('player2')
+    if player and player2:
+        player = loads(player + player2)
         players = gamefile['players']
         players[player['id']] = player
         gamefile['players'] = players
