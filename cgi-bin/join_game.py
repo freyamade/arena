@@ -1,85 +1,62 @@
 #!/usr/bin/env python3
-# File containing the function to make the user join a game
+from cgitb import enable
+enable()
+from cgi import FieldStorage, escape
+from socket import *
 from http.cookies import SimpleCookie
-from os import environ, path, getcwd
-from shelve import open as shelf
+data = FieldStorage()
 
-def join(filename):
-    # Filename will be null if the call is from list rather than create
-    cookie = SimpleCookie()
-    # if 'HTTP_COOKIE' in environ:
-    #     cookie.load(environ['HTTP_COOKIE'])
-    cookie['filename'] = filename
+username = ""
+ip_address = ""
+port = "44444"
+error = ''
+if len(data) > 0:
+    # Check the passed address for connection
+    # TODO - Clean the inputs, ensure everything is good
+    username = escape(data.getfirst('username', 'Guest'))
+    ip_address = escape(data.getfirst('address', ''))
+    port = escape(data.getfirst('port', port))
+    sock = socket(AF_INET, SOCK_STREAM)
+    try:
+        sock.bind(('', 44445))
+        sock.connect((ip_address, int(port)))
+        msg = 'join=' + username
+        sock.sendall(msg.encode())
+        # Receive the join status
+        response = sock.recv(256).decode()
+        if 'joined' in response:
+            cookie = SimpleCookie()
+            cookie['game_address'] = ip_address + ':' + port
+            cookie['player_num'] = response.split('=')[1] #joined=num
+            print(cookie)
+            print('Status: 303')
+            print('Location: lobby.py')
+        else:
+            error = 'Lobby Full'
+        sock.close()
+    except Exception as e:
+        error = str(e)
 
-    # May change when map creation implemented
-    width = 650
-    height = 650
+form = """
+<form action="" method="POST">
+Username: <input type="text" name="username" placeholder="Guest" value="%s"/><br />
+IP Address: <input type="text" name="address" required value="%s" /><br />
+Port Number: <input type="text" name="port" value="44444" required  value="%s" /><br />
+<input type="submit" />
+</form>""" %(username, ip_address, port)
 
-    # Now add this player to the game file
-    gamefile = shelf('../games/' + filename, writeback=True)
-    if 'players' not in gamefile:
-        # We are creating a new game
-        coords = [
-            (width / 4, height / 4),
-            ((3 * width) / 4, height / 4),
-            (width / 4, (3 * height) / 4),
-            ((3 * width) / 4, (3 * height) / 4)
-        ]
-        players = []
-        joinable = True
-        gamefile['started'] = False
-    else:
-        coords = gamefile['coords']
-        players = gamefile['players']
-        joinable = gamefile['joinable']
+print('Content-Type: text/html')
+print()
+print("""
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Arena - Join Game</title>
+    </head>
 
-    if joinable:
-        # Now set up a dict for the new player
-        # Colours will be profile specific, but random until auth implemented
-        from random import choice
-        player_coords_index = choice(range(len(coords)))
-        player_coords = coords[player_coords_index]
-        coords.remove(player_coords)
-        # Store the initialistion json in file until game starts, then replace with
-        # player objects from javascript after creation
-        players.append({
-            'x': player_coords[0],
-            'y': player_coords[1],
-            'userName': 'Player %i' % (len(players) + 1),
-            'colour': '#%s' % (''.join([choice('0123456789ABCDEF')
-                                        for x in range(6)])),
-            'ready': False,
-            'local': False
-        })
-        gamefile['players'] = players
-        gamefile['coords'] = coords
-        gamefile['joinable'] = len(players) < 4
-        cookie['player_num'] = len(players) - 1
-        print(cookie)
-        gamefile.close()
-
-        print('Content-Type: text/plain')
-        print('Status: 303')
-        print('Location: lobby.py')
-        print()
-
-    else:
-        print('Content-Type: text/html')
-        print()
-        print('<p>Whoops! The lobby seems to be full now, sorry<p><br /><p>Go <a href="list-games.py">back</a>?</p>')
-
-if __name__ == '__main__':
-    # Get the filename from the cookie and run the method
-    from cgitb import enable
-    enable()
-    from cgi import FieldStorage
-    data = FieldStorage()
-    filename = data.getfirst('filename', '')
-    if not filename or not path.abspath(filename) != getcwd():
-        print('Content-Type: text/plain')
-        print()
-        print(path.abspath(filename))
-        print(getcwd())
-    else:
-        # Valid path name
-        join(filename)
+    <body>
+        <h1>Join A Game</h1>
+        %s
+        <h3>%s</h3>
+    </body>
+</html>""" % (form, error))

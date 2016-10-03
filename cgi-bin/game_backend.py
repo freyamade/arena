@@ -6,7 +6,8 @@ from os import environ
 from http.cookies import SimpleCookie
 from cgi import FieldStorage
 from json import dumps, loads
-from threading import Lock
+
+# 44446
 
 # Get the version of this file that is required, and return the necessary
 # json
@@ -45,8 +46,7 @@ else:
     # Update the player that is sent and send back all players
     # Receive player data in two pieces
     player = form_data.getfirst('player')
-    player2 = form_data.getfirst('player2')
-    if player and player2:
+    if player:
         player = loads(player + player2)
         players = gamefile['players']
         players[player['id']] = player
