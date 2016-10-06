@@ -1,23 +1,21 @@
-# Reminder
-Please ensure you are on the correct branch for the part of the project you are working on.
-Branches will be merged in when fully tested and all issues are closed
+# Welcome to the Arena
+The Arena is a 4 player, free-for-all shooter game written in Javascript using the HTML5 canvas, with a custom built server written in Python at the backend. It's fast paced fun for your local network.
 
-##N.B - Never push to master
+## How to play (v1.0a)
+1. You must have python3.x installed on your machine, and it helps to run the server on a Linux machine
+  * We have done no testing with regard to Windows hosting
+2. Download the latest releases [here (v1.0a)](https://github.com/CompSci2k18/Arena/releases)
+3. Extract the code from the downloaded archives
+4. Navigate to your extracted code and run the server file (server.py)
+5. Go to cs1.ucc.ie/~cb16/arena/ (should be changed) and choose Join Game.
+6. Type in a username, the ip and port that were printed out by your server file and you're all set :)
 
-#Modules
-There are 4 modules that I can see in this project. They are as follows;
-1. Server Browser
-2. Game Backend
-3. Game Client
-4. Auth / Player Profiles
+## Issues with the game
+If you have found any issues or bugs in the game code, please submit them [here](https://github.com/CompSci2k18/Arena/issues).
+Submitting issues helps us provide a better game for all of you :)
 
-Each of these modules has their own branch and projects page.
-When you've been invited to the organisation and repo, go to the project page for the module(s) you want to help out in and add a note with your name to the column labelled People working on this module.
+## Want to lend a hand?
+Feel free to Fork this repo and patch some bugs or add some new features or just use the code to make your own game.
 
-The project pages are used to keep everything together for each module, to post notes to the team and stuff like that.
-
-#Setting up local branches to copy remote branches
-If you need to setup a local branch to match a branch hosted here, use the following code;
-```git branch --track game-code origin/game-code```
-
-Replace ___game-code___ with whatever branch you are working on
+### If you like the game
+Then maybe give us a star? Really helps our egos
