@@ -25,7 +25,6 @@
                 },
                 ifModified : true,
                 success : function(json){
-                    console.log(json);
                     if(!json.started){
                         //Since it only succeeds if modified, just remove and redraw every row in the table any time things change
                         $(players).empty();

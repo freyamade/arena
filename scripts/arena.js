@@ -2,6 +2,8 @@
 
 (function(){
     //Global Variables
+    //Server url
+    var server;
     //Game switch
     var ready = false;
     var countdownTimer = 3;
@@ -33,6 +35,7 @@
     //Obstacles
     var obstacles = [];
     //Vars for game over
+    var game_address;
     var updateInterval;
     var ajaxInterval;
     var playersAlive = 4;
@@ -119,8 +122,7 @@
                     if(i !== local){
                         var player = players[i];
                         if(player !== null && player.isAlive() && collisionBetween(this, player)){
-                            this.destroy();
-                            players[i].hit(this);
+                            this.destroy(i);
                             break;
                         }
                     }
@@ -149,9 +151,18 @@
                 this.bounces -= 1;
             },
 
-            destroy : function(){
+            destroy : function(hitPlayer){
                 //Remove this bullet from it's player's list
-                players[this.owner].bulletDestroyed(number);
+                //Specify the player that it hit, let the update method
+                //remove it afterwards
+                var bullet = this;
+                players[this.owner].bullets[this.number] = {
+                    owner : bullet.owner,
+                    number : bullet.number,
+                    hitPlayer : hitPlayer,
+                    damage : bullet.getDamage()
+                }
+                //This will be used to update the players when they get hit
             },
 
             fire : function(coords){
@@ -219,6 +230,7 @@
             colour : colour,
             userName : userName,
             alive : true,
+            damage : null, //For passing damage dealt around
 
             //Instance Methods
             getHealth : function(){
@@ -344,11 +356,19 @@
                 this.y += this.yChange;
 
                 //Draw the bullets
+                var player = this;
                 this.bullets.forEach(function(bullet, index){
                     if(bullet !== null){
-                        bullet.draw();
+                        if(bullet.hasOwnProperty('hitPlayer')){
+                            player.bulletDestroyed(bullet.number);
+                        }
+                        else{
+                            bullet.draw();
+                        }
                     }
                 });
+                //Now test for bullet collisions
+                this.updateHealth();
             },
 
             fireBullet : function(coords){
@@ -372,8 +392,13 @@
 
             bulletDestroyed : function(number){
                 //this.bullets[number] has been destroyed
+                console.log(this.bullets[number]);
                 this.bullets[number] = null;
                 this.numBullets += 1;
+                //Error checking
+                if(this.numBullets > 3){
+                    this.numBullets = 3;
+                }
             },
 
             wallCollision : function(){
@@ -403,16 +428,57 @@
 
             hit : function(bullet){
                 //Player hit by bullet, subtract health accordingly
-                var damage = bullet.getDamage();
-                this.health = (this.health - damage).toFixed(2);
-                if(this.health <= 0){
-                    this.destroy();
+                var damage = bullet.damage;
+                this.damage = damage;
+            },
+
+            updateHealth : function(){
+                //Handles health management
+                if(this.damage !== null){
+                    this.health = (this.health - this.damage).toFixed(2);
+                    if(this.health <= 0){
+                        this.destroy();
+                    }
+                    this.damage = null;
                 }
             },
 
             destroy : function(){
                 this.alive = false;
                 playersAlive -= 1;
+            },
+
+            update : function(data){
+                //Update this player with the data that was sent
+                var oldHealth = this.health;
+                $.extend(this, data);
+                if(oldHealth < this.health){
+                    this.health = oldHealth;
+                }
+                //Update bullets for this player
+                var player = this;
+                data.bullets.forEach(function(bullet, index){
+                    if(bullet !== null){
+                        if(bullet.hasOwnProperty('hitPlayer')){
+                            players[bullet.hitPlayer].hit(bullet);
+                            players[bullet.owner].bulletDestroyed(bullet.number);
+                        }
+                        else{
+                            var newBullet = new Bullet(
+                                bullet.x, bullet.y, player.id, index);
+                            newBullet.xChange = bullet.xChange;
+                            newBullet.yChange = bullet.yChange;
+                            player.bullets[index] = newBullet;
+                        }
+                    }
+                });
+            },
+
+            updateLocal : function(data) {
+                //Update health and stuff
+                if(this.health > data.health){
+                    this.health = data.health;
+                }
             }
         }
     }
@@ -495,6 +561,22 @@
         }
     }
 
+    //Reading cookie data
+    function getCookie(cname) {
+        var name = cname + "=";
+        var ca = document.cookie.split(';');
+        for(var i = 0; i <ca.length; i++) {
+            var c = ca[i];
+            while (c.charAt(0)===' ') {
+                c = c.substring(1);
+            }
+            if (c.indexOf(name) === 0) {
+                return c.substring(name.length,c.length);
+            }
+        }
+        return "";
+    }
+
     //Running Code / Game Methods
     window.addEventListener('DOMContentLoaded', init, false);
 
@@ -506,6 +588,7 @@
         height = canvas.height;
         width = canvas.width;
         displayRows = $('tbody tr');
+        server = 'http://' + getCookie('game_address');
 
         //Create obstacles
         createObstacles();
@@ -594,18 +677,30 @@
     function updatePlayers(){
         //Pull data from the server and put it into the players list
         $.ajax({
-            url:'game_backend.py',
+            url: server,
             dataType: 'json',
+            type: 'POST',
             data: {
-                player: JSON.stringify(players[local])
+                update: JSON.stringify(players[local])
             },
+            ifModified : 'true',
             success: function(json){
-                console.log(json);//.players);
+                // TODO - Update the players list
+                json.players.forEach(function(player){
+                    var index = player.id;
+                    if(index !== local){
+                        players[index].update(player);
+                    }
+                    else{
+                        players[index].updateLocal(player);
+                    }
+                });
                 updatePlayers();
             },
             error: function(req, text){
                 console.log('update ' + req.responseText);
-                window.setTimeout(1000, updatePlayers);
+                console.log('update ' + text);
+                window.setTimeout(updatePlayers, 1000);
             }
         });
     }
@@ -614,11 +709,13 @@
         //In the MP version, read in POST data and populate players accordingly
         //In SP, just creates players for testing
         $.ajax({
-            url: 'game_backend.py',
+            url: server,
             dataType : 'json',
+            type: 'POST',
             data : {
-                start_up : 'True'
+                start_up : getCookie('player_num')
             },
+            ifModified: 'true',
             success : function(json){
                 //Update the players array with the json data
                 json.players.forEach(function(player, index){
@@ -642,6 +739,7 @@
                 updateDisplays();
             },
             error: function(req, text){
+                console.log('setup ' + req.responseText);
                 console.log('setup ' + text);
             }
         });
@@ -660,7 +758,7 @@
     function draw(){
         context.clearRect(0, 0, width, height);
         //Draw the walls
-	context.strokeStyle = 'blue';
+    	context.strokeStyle = 'blue';
         obstacles.forEach(function(obstacle, index){
             obstacle.draw();
         });
