@@ -11,14 +11,6 @@ from json import loads
     Script: Lobby
     Webpage in Python for displaying the lobby information.
     Also can be queried with format=json to get the data in JSON format
-
-    Group: Types
-
-    Type: FieldStorage
-    Python's cgi.FieldStorage; used for reading form data
-
-    Type: SimpleCookie
-    Python's http.cookies.SimpleCookie; used for reading and writing cookies
 */"""
 
 # Group: Variables

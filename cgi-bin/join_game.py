@@ -4,11 +4,31 @@ enable()
 from cgi import FieldStorage, escape
 from socket import *
 from http.cookies import SimpleCookie
+
+"""/*
+    Script: Join Game
+    Webpage in Python to allow a user to join an active game server.
+    Servers can only be joined if they are not full and have not started.
+*/"""
+
+# obj: data
+# A <FieldStorage> instance containing the form-data passed to this page
 data = FieldStorage()
 
+# string: username
+# The username that the user inserts into the form
 username = ""
+
+# string: ip_address
+# The ip address that the user inserts into the form
 ip_address = ""
+
+# string: port
+# The port number that the user inserts into the form; defaults to 44444
 port = "44444"
+
+# string: error
+# A string for outputting any errors that occur
 error = ''
 if len(data) > 0:
     # Check the passed address for connection

@@ -1,5 +1,5 @@
 /*
-    Script: Lobby
+    Script: Lobby Client
     AJAX script for updating the <Lobby>
 */
 (function(){

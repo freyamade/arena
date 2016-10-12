@@ -21,22 +21,6 @@ from urllib.request import unquote
 */"""
 class ArenaServer:
 
-    # Group: Data Types
-
-    """/*
-        Type: Tuple
-        Python's tuple
-
-        Type: List
-        Python's list
-
-        Type: Socket
-        Python's socket object from the socket module
-
-        Type: Coordinates
-        Two-tuple containing a pair of (x, y) coordinates
-    */"""
-
     # Group: Constructors
 
     """/*
