@@ -981,7 +981,8 @@ Intervals are used for JavaScript to schedule the running of functions periodica
             string cname - Name of the cookie
 
         Returns:
-            string value - Value of the cookie, or '' if cname is not found
+            string value - Value of the cookie, or '' if cname is
+                           not found in the cookie
     */
     function getCookie(cname) {
         var name = cname + "=";

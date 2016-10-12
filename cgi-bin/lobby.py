@@ -7,18 +7,50 @@ from cgi import FieldStorage # For ajax queries
 from socket import *
 from json import loads
 
-"""
-Constantly monitor the setup of the file using ajax and display a list of
-players currently in the lobby, in their player colours, along with a mark
-beside the local player, and a start game button for player_num 0
-"""
+"""/*
+    Script: Lobby
+    Webpage in Python for displaying the lobby information.
+    Also can be queried with format=json to get the data in JSON format
 
+    Group: Types
+
+    Type: FieldStorage
+    Python's cgi.FieldStorage; used for reading form data
+
+    Type: SimpleCookie
+    Python's http.cookies.SimpleCookie; used for reading and writing cookies
+*/"""
+
+# Group: Variables
+
+# obj: data
+# A <FieldStorage> instance containing the form-data passed to this page
 data = FieldStorage()
+
+# string: format
+# If format is 'json', this script will return a JSON string of the lobby
+# status from the server. If not, this script will return a full HTML page.
 format = data.getfirst('format', 'not-json')
+
+# string: output
+# Used for building up the output to be displayed by the script
 output = ''
+
+# int: player_num
+# Index of the client in the <Server.players> array; stored in cookie
 player_num = -1
+
+# string: button
+# String storing a button element iff the player is the hose
 button = ''
+
+# obj: cookie
+# A <SimpleCookie> instance for reading and writing browser cookies
 cookie = SimpleCookie()
+
+# Group: Functions
+# Currently there are no functions in this script. We may however re-write this
+# script to use functions to make things a little neater
 try:
     cookie.load(environ['HTTP_COOKIE'])
     player_num = int(cookie.get('player_num').value)

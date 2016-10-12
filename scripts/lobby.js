@@ -1,9 +1,22 @@
-//AJAX the file to get the players, set up lobby.py to allow two displays
+/*
+    Script: Lobby
+    AJAX script for updating the <Lobby>
+*/
 (function(){
+    //ptr: players
+    //Points to the body of the table in order to add or remove players
+    //from the display as needed
     var players;
 
     window.addEventListener('DOMContentLoaded', init, false);
 
+    /*
+        Function: init
+        Initialises the program.
+        Sets the value for <players>, and adds event listeners to the
+        nodes that require them.
+        Creates an <Interval> to check for updates every second
+    */
     function init(){
         players = document.querySelector('table tbody');
         var buttons = document.querySelectorAll('button');
@@ -15,6 +28,13 @@
         window.setInterval(checkUpdates, 1000);
     }
 
+    /*
+        Function: checkUpdates
+        Queries the server through the <Lobby> by receiving JSON data
+        through an AJAX request.
+        If the data received has changed since the last request, update the table.
+        If the host has started the game, run <startGame>.
+    */
     function checkUpdates(){
         var player_num = getCookie('player_num');
         $.ajax({
@@ -45,6 +65,11 @@
         )
     }
 
+    /*
+        Function: startGame
+        Sends an ajax request to the server to inform it that this player
+        is ready to start, then redirects to the game on success
+    */
     function startGame(){
         $.ajax({
             url: 'start_game.py',
@@ -61,6 +86,17 @@
         });
     }
 
+    /*
+        Function: getCookie
+        Read cookie data by name
+
+        Parameters:
+            string cname - Name of the cookie
+
+        Returns:
+            string value - Value of the cookie, or '' if cname is
+                           not found in the cookie
+    */
     function getCookie(cname) {
         var name = cname + "=";
         var ca = document.cookie.split(';');
