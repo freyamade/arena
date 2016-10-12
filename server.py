@@ -42,19 +42,19 @@ class ArenaServer:
         False until the host clicks the Start Game button.
 
         array: players
-        List of player JSON objects in the lobby
+        <List> of player JSON objects in the lobby
 
         int: lobby_size
         Maintaining the amount of players currently in the lobby
 
         array: coords
-        List of <coordinate> tuples players can spawn in
+        <List> of <coordinate> tuples players can spawn in
 
         array: coordinate
         Tuples of (x, y) coordinates
 
         array: player_objects
-        List of the <Player> objects created in Javascript for all players in
+        <List> of the <Player> objects created in Javascript for all players in
         game
     */"""
 
@@ -131,8 +131,8 @@ class ArenaServer:
         in the lobby state
         
         Parameters:
-            Socket client - The socket to send response through.
-            Tuple[string, int] address - The address and port of the client.
+            <Socket> client - The socket to send response through.
+            <Tuple>[string, int] address - The address and port of the client.
 
         Returns:
             The results of <Lobby Join>, <Lobby Query>, or <Lobby Start>,
@@ -159,8 +159,8 @@ class ArenaServer:
         Handler for player joining the lobby
 
         Parameters:
-            Socket client - The socket to send response through
-            Tuple[string, int] address - The address and port of the client
+            <Socket> client - The socket to send response through
+            <Tuple>[string, int] address - The address and port of the client
             string msg - The msg that was sent by the client
                          Includes the username that the player has chosen
 
@@ -204,13 +204,13 @@ class ArenaServer:
         Handler for AJAX querying the players in the lobby
 
         Parameters:
-            Socket client - The socket to send response through
-            Tuple[string, int] address - The address and port of the client
+            <Socket> client - The socket to send response through
+            <Tuple>[string, int] address - The address and port of the client
             string msg - The msg that was sent by the client
                          Includes the index of the player in the list of players
 
         Returns:
-            array players - List of player objects currently in the lobby
+            <List> players - List of player objects currently in the lobby
 
             boolean started - False if the game hasn't started, True otherwise
     */"""
@@ -236,8 +236,8 @@ class ArenaServer:
         Handler for the host starting the game
 
         Parameters:
-            Socket client - The socket to send response through
-            Tuple[string, int] address - The address and port of the client
+            <Socket> client - The socket to send response through
+            <Tuple>[string, int] address - The address and port of the client
             string msg - The msg that was sent by the client
                          Includes the index of the player in the list of players
 
@@ -263,8 +263,8 @@ class ArenaServer:
         running
 
         Parameters:
-            Socket client - The socket to send response through.
-            Tuple[string, int] address - The address and port of the client.
+            <Socket> client - The socket to send response through.
+            <Tuple>[string, int] address - The address and port of the client.
             boolean repeat - Due to issues with http sockets, allow one re-run
                              of this handler to ensure message is received
 
@@ -293,8 +293,8 @@ class ArenaServer:
         data
 
         Parameters:
-            Socket client - The socket to send response through
-            Tuple[string, int] address - The address and port of the client
+            <Socket> client - The socket to send response through
+            <Tuple>[string, int] address - The address and port of the client
             string msg - The msg that was sent by the client
                          Includes the index of the player in the list of players
 
@@ -331,8 +331,8 @@ class ArenaServer:
         Handler for the AJAX updating player data for all players connected
 
         Parameters:
-            Socket client - The socket to send response through
-            Tuple[string, int] address - The address and port of the client
+            <Socket> client - The socket to send response through
+            <Tuple>[string, int] address - The address and port of the client
             string msg - The msg that was sent by the client
                          Includes a JSON string of the local players data
 
