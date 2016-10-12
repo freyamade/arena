@@ -1,6 +1,7 @@
 /*
-Script: Arena.js
-Client Code for game
+Script: Arena
+JavaScript client code that runs in browser. Handles drawing of objects and, using AJAX,
+handles updating data by sending and receiving from the <Server>
 
 Type: KeyboardEvent
 See the <Mozilla Docs at https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent> for more info
