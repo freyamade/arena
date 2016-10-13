@@ -38,7 +38,7 @@
     var game_address;
     var updateInterval;
     var ajaxInterval;
-    var playersAlive = 4;
+    var playersAlive;
 
     //Classes (might move to seperate file)
     function Bullet(x, y, owner, number){
@@ -717,6 +717,7 @@
             },
             ifModified: 'true',
             success : function(json){
+                playersAlive = 0;
                 //Update the players array with the json data
                 json.players.forEach(function(player, index){
                     players[index] = new Player(
@@ -724,6 +725,7 @@
                     if(player.local){
                         local = index;
                     }
+                    playersAlive += 1;
                 });
                 //Draw the names of players into the table
                 players.forEach(function(player, index){
@@ -815,6 +817,7 @@
         for(var i = 0; i < players.length; i ++){
             if(players[i] !== null && players[i].isAlive()){
                 player = players[i];
+                break;
             }
         }
         window.alert('Game Over! Winner: ' + player.getUserName());
