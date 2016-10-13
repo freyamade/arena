@@ -7,6 +7,8 @@ from cgi import FieldStorage
 from json import dumps, loads
 from socket import *
 
+# THIS FILE IS NOW UNUSED
+
 # Get the version of this file that is required, and return the necessary
 # json
 form_data = FieldStorage()
