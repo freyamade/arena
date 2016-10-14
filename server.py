@@ -209,7 +209,8 @@ class ArenaServer:
                 'colour': '#%s' % (self._generateColour()),
                 'local': False,
                 'queryTimeout': 20,
-                'ready': False
+                'ready': False,
+                'host': self.lobby_size == 0
             }
             self.lobby_size += 1
             self.players[player_index] = player
@@ -247,10 +248,16 @@ class ArenaServer:
                     self.coords.append((player['x'], player['y']))
                     self.players[i] = None
                     self.lobby_size -= 1
+                    if player['host']:
+                        for p in self.players:
+                            if p:
+                                p['host'] = True 
+
         client.sendall(dumps(
             {'players':
              [player for player in self.players if player is not None],
-             'started': self.host_start}).encode())
+             'started': self.host_start,
+             'host': self.players[player_num]['host']}).encode())
 
     """/*
         Function: _lobbyStart
