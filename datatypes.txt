@@ -1,6 +1,8 @@
 Title: Datatypes
 
-All the Python data types used in the project.
+All the data types used in the project.
+
+Group: Python Data Types
 
 Type: Tuple
 Python's builtin tuple
@@ -20,6 +22,8 @@ Python's cgi.FieldStorage; used for reading form data
 Type: SimpleCookie
 Python's http.cookies.SimpleCookie; used for reading and writing cookies
 
+Group: JS Data Types
+
 Type: KeyboardEvent
 See the <Mozilla Docs at https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent> for more info
 
@@ -28,3 +32,6 @@ See the <Mozilla Docs at https://developer.mozilla.org/en-US/docs/Web/API/MouseE
 
 Type: Interval
 Intervals are used for JavaScript to schedule the running of functions periodically
+
+Type: jqXHR
+jQuery's wrapper of the native XMLHttpRequest with a superset API.

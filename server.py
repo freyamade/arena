@@ -12,12 +12,6 @@ from urllib.request import unquote
     A custom server written in Python3.4 for use as the backend for this game.
     Uses a simple protocol when receiving messages from the players.
     Multithreaded for increased speed, especially during the actual game.
-
-    Note:
-        Being developer docs, there are private methods that have been
-        documented here. Any method prefixed with _ is considered private in
-        Python by convention, and should not be called outside of the
-        containing class
 */"""
 class ArenaServer:
 
@@ -78,12 +72,18 @@ class ArenaServer:
             ((3 * width) / 4, (3 * height) / 4)
         ]
 
-        # array: player_objects
-        # <List> of the <Player> objects created in Javascript for all players
-        # in the game
+        """/* 
+            array: player_objects
+            <List> of the <Player> objects created in Javascript for all
+            players in the game
+
+            Note:
+                They are <Player> objects in JavaScript, but Python stores them
+                as dicts
+        */"""
         self.player_objects = []
 
-    # Group: Methods
+    # Group: Public Methods
 
     """/*
         Function: close
@@ -121,6 +121,17 @@ class ArenaServer:
                 Thread(
                     target=self._handleGameConnection,
                     args=(client, address)).start()
+
+    """/*
+        Group: Private Methods
+        Note:
+            Being developer docs, there are private methods that have been
+            documented here.
+
+            Any method prefixed with _ is considered private in Python by
+            convention, and should not be called outside of the containing
+            class
+    */"""
 
     """/*
         Function: _handleLobbyConnection
@@ -172,6 +183,19 @@ class ArenaServer:
         # Handles players joining the lobby
         if self.lobby_size < 4 and not self.started:
             username = msg.split('=')[1]
+            # Find the index for the player
+            player_index = -1
+            index_assigned = False
+            username_count = 0
+            for i in range(len(self.players)):
+                player = self.players[i]
+                if player == None and not index_assigned:
+                    player_index = i
+                    index_assigned = True
+                elif player != None and player['userName'] == username:
+                    username_count += 1
+            if username_count > 0:
+                username += ' (%i)' %(username_count)
             print(username, 'has joined the lobby!')
             # Get the player coords
             player_coords_index = choice(range(len(self.coords)))
@@ -188,12 +212,8 @@ class ArenaServer:
                 'ready': False
             }
             self.lobby_size += 1
-            # Find the index for the player
-            for i in range(len(self.players)):
-                if self.players[i] == None:
-                    break
-            self.players[i] = player
-            msg = 'joined=' + str(i)
+            self.players[player_index] = player
+            msg = 'joined=' + str(player_index)
             client.sendall(msg.encode())
         else:
             client.sendall('lobby full'.encode())
@@ -226,7 +246,7 @@ class ArenaServer:
                 if player['queryTimeout'] <= 0:
                     self.coords.append((player['x'], player['y']))
                     self.players[i] = None
-                    self.players_in_lobby -= 1
+                    self.lobby_size -= 1
         client.sendall(dumps(
             {'players':
              [player for player in self.players if player is not None],
