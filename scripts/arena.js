@@ -1121,7 +1121,8 @@ handles updating data by sending and receiving from the <Server>
             error: function(req, text){
                 console.log('update ' + req.responseText);
                 console.log('update ' + text);
-                window.setTimeout(updatePlayers, 1000);
+                checkIfServerCrashed(req);
+                updatePlayers();
             }
         });
     }
@@ -1168,10 +1169,17 @@ handles updating data by sending and receiving from the <Server>
             error: function(req, text){
                 console.log('setup ' + req.responseText);
                 console.log('setup ' + text);
+                checkIfServerCrashed(req);
             }
         });
     }
-
+    //Go back to mainpage on server crash
+    function checkIfServerCrashed(req){
+        //console.log("Status Code: "+);
+        if (req.readyState < 4 || req.status >= 500){
+            window.location = "../";
+        }
+    }
     //Game loop methods
 
     /*
@@ -1307,6 +1315,7 @@ handles updating data by sending and receiving from the <Server>
             }
         }
         window.alert('Game Over! Winner: ' + player.getUserName());
+        
     }
 
 }());
