@@ -246,7 +246,7 @@ class ArenaServer:
                 if player['queryTimeout'] <= 0:
                     self.coords.append((player['x'], player['y']))
                     self.players[i] = None
-                    self.players_in_lobby -= 1
+                    self.lobby_size -= 1
         client.sendall(dumps(
             {'players':
              [player for player in self.players if player is not None],
