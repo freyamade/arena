@@ -701,7 +701,7 @@
                 console.log('update ' + req.responseText);
                 console.log('update ' + text);
                 checkIfServerCrashed(req);
-                //window.setTimeout(updatePlayers, 1000);
+                updatePlayers();
             }
         });
     }
