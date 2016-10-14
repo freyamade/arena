@@ -3,6 +3,7 @@ from cgitb import enable
 enable()
 from cgi import FieldStorage, escape
 from socket import *
+from os import environ
 from http.cookies import SimpleCookie
 
 """/*
@@ -30,12 +31,13 @@ port = "44444"
 # string: error
 # A string for outputting any errors that occur
 error = ''
-if len(data) > 0:
-    # Check the passed address for connection
-    # TODO - Clean the inputs, ensure everything is good
-    username = escape(data.getfirst('username', 'Guest'))
-    ip_address = escape(data.getfirst('address', ''))
-    port = escape(data.getfirst('port', port))
+
+"""/*
+    Function: newGame
+    Set up the player in the lobby of the passed address, if they aren't
+    already connected to the server at the address
+*/"""
+def newGame():
     sock = socket(AF_INET, SOCK_STREAM)
     try:
         sock.bind(('', 44445))
@@ -45,17 +47,40 @@ if len(data) > 0:
         # Receive the join status
         response = sock.recv(256).decode()
         if 'joined' in response:
-            cookie = SimpleCookie()
             cookie['game_address'] = ip_address + ':' + port
             cookie['player_num'] = response.split('=')[1] #joined=num
-            print(cookie)
-            print('Status: 303')
-            print('Location: lobby.py')
         else:
             error = 'Lobby Full'
         sock.close()
     except Exception as e:
+        # #12 will be fixed here
         error = str(e)
+
+if len(data) > 0:
+    # Check the passed address for connection
+    username = escape(data.getfirst('username', 'Guest'))
+    ip_address = escape(data.getfirst('address', ''))
+    port = escape(data.getfirst('port', port))
+
+    cookie = SimpleCookie()
+    try:
+        # Try to load a cookie for this website
+        cookie.load(environ['HTTP_COOKIE'])
+    except KeyError:
+        # No cookie, run the new game function
+        newGame()
+    else:
+        # Cookie exists, check if the address in the form is equal to the
+        # address in the cookie
+        cookie_address = cookie.get('game_address').value
+        if cookie_address != (ip_address + ':' + port):
+            # The player has connected to a new game
+            newGame()
+        # Else, they've already joined this game
+    finally:
+        print(cookie)
+        print('Status: 303')
+        print('Location: lobby.py')
 
 form = """
 <form action="" method="POST">
