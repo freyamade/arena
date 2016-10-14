@@ -31,6 +31,31 @@ port = "44444"
 # string: error
 # A string for outputting any errors that occur
 error = ''
+
+"""/*
+    Function: newGame
+    Set up the player in the lobby of the passed address, if they aren't
+    already connected to the server at the address
+*/"""
+def newGame():
+    sock = socket(AF_INET, SOCK_STREAM)
+    try:
+        sock.bind(('', 44445))
+        sock.connect((ip_address, int(port)))
+        msg = 'join=' + username
+        sock.sendall(msg.encode())
+        # Receive the join status
+        response = sock.recv(256).decode()
+        if 'joined' in response:
+            cookie['game_address'] = ip_address + ':' + port
+            cookie['player_num'] = response.split('=')[1] #joined=num
+        else:
+            error = 'Lobby Full'
+        sock.close()
+    except Exception as e:
+        # #12 will be fixed here
+        error = str(e)
+
 if len(data) > 0:
     # Check the passed address for connection
     username = escape(data.getfirst('username', 'Guest'))
@@ -53,35 +78,9 @@ if len(data) > 0:
             newGame()
         # Else, they've already joined this game
     finally:
+        print(cookie)
         print('Status: 303')
         print('Location: lobby.py')
-
-"""/*
-    Function: newGame
-    Set up the player in the lobby of the passed address, if they aren't
-    already connected to the server at the address
-*/"""
-def newGame():
-    sock = socket(AF_INET, SOCK_STREAM)
-    try:
-        sock.bind(('', 44445))
-        sock.connect((ip_address, int(port)))
-        msg = 'join=' + username
-        sock.sendall(msg.encode())
-        # Receive the join status
-        response = sock.recv(256).decode()
-        if 'joined' in response:
-            cookie['game_address'] = ip_address + ':' + port
-            cookie['player_num'] = response.split('=')[1] #joined=num
-            print(cookie)
-            print('Status: 303')
-            print('Location: lobby.py')
-        else:
-            error = 'Lobby Full'
-        sock.close()
-    except Exception as e:
-        # #12 will be fixed here
-        error = str(e)
 
 form = """
 <form action="" method="POST">

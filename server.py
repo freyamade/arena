@@ -185,11 +185,14 @@ class ArenaServer:
             username = msg.split('=')[1]
             # Find the index for the player
             player_index = -1
+            index_assigned = False
             username_count = 0
             for i in range(len(self.players)):
-                if self.players[i] == None:
-                    player_index = 1
-                elif self.players[i]['userName'] == username:
+                player = self.players[i]
+                if player == None and not index_assigned:
+                    player_index = i
+                    index_assigned = True
+                elif player != None and player['userName'] == username:
                     username_count += 1
             if username_count > 0:
                 username += ' (%i)' %(username_count)
@@ -209,8 +212,8 @@ class ArenaServer:
                 'ready': False
             }
             self.lobby_size += 1
-            self.players[i] = player
-            msg = 'joined=' + str(i)
+            self.players[player_index] = player
+            msg = 'joined=' + str(player_index)
             client.sendall(msg.encode())
         else:
             client.sendall('lobby full'.encode())
