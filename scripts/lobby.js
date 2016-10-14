@@ -40,6 +40,10 @@
                         //Other players get an onclick
                         startGame();
                     }
+                },
+                error : function(req,error){
+                    checkIfServerCrashed(req);
+                    //console.log(">>start_game_error: " + req.status);
                 }
             }
         )
@@ -56,8 +60,8 @@
                 }
             },
             error: function(req, error){
-                console.log(error);
-                //serverCrashed();
+                checkIfServerCrashed(req);
+                console.log(">>start_game_error: " + req.status);
             }
         });
     }
@@ -77,7 +81,9 @@
         return "";
     }
 
-    function serverCrashed(){
-        window.location = "../"
+    function checkIfServerCrashed(req){
+        if (req.status === 500){
+            window.location = "../"
+        }
     }
 }());
