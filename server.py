@@ -183,6 +183,16 @@ class ArenaServer:
         # Handles players joining the lobby
         if self.lobby_size < 4 and not self.started:
             username = msg.split('=')[1]
+            # Find the index for the player
+            player_index = -1
+            username_count = 0
+            for i in range(len(self.players)):
+                if self.players[i] == None:
+                    player_index = 1
+                elif self.players[i]['userName'] == username:
+                    username_count += 1
+            if username_count > 0:
+                username += ' (%i)' %(username_count)
             print(username, 'has joined the lobby!')
             # Get the player coords
             player_coords_index = choice(range(len(self.coords)))
@@ -199,10 +209,6 @@ class ArenaServer:
                 'ready': False
             }
             self.lobby_size += 1
-            # Find the index for the player
-            for i in range(len(self.players)):
-                if self.players[i] == None:
-                    break
             self.players[i] = player
             msg = 'joined=' + str(i)
             client.sendall(msg.encode())
