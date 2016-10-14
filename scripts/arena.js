@@ -264,14 +264,15 @@ handles updating data by sending and receiving from the <Server>
                 //     }
                 // }
                 if(this.owner !== local){
-                    players.forEach(function(player, index){
-                        if(index !== local){
+                    for(var i = 0; i < players.length; i++){
+                        if(i !== local){
+                            player = players[i];
                             if(player !== null && player.isAlive() && collisionBetween(this, player)){
-                                this.destroy(index);
+                                this.destroy(i);
                                 break;
                             }
                         }
-                    });
+                    }
                 }
             },
 
