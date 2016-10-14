@@ -102,11 +102,11 @@ handles updating data by sending and receiving from the <Server>
     var server;
 
     //int: updateInterval
-    //The id of the <Interval>(s) used for running methods updating the canvas / game state
+    //The id of the <Interval> used for running methods updating the canvas / game state
     var updateInterval;
 
     //int: ajaxInterval
-    //The id of the <Interval>(s) used for making periodic ajax requests to the server
+    //The id of the <Interval> used for making periodic ajax requests to the server
     var ajaxInterval;
 
     //int: playersAlive
@@ -1173,9 +1173,15 @@ handles updating data by sending and receiving from the <Server>
             }
         });
     }
-    //Go back to mainpage on server crash
+
+    /*
+        Function: checkIfServerCrashed
+        Checks if the server has crashed if an AJAX request fails
+
+        Parameters:
+            jqXHR req - <jqXHR> object containing the response information
+    */
     function checkIfServerCrashed(req){
-        //console.log("Status Code: "+);
         if (req.readyState < 4 || req.status >= 500){
             window.location = "../";
         }

@@ -12,12 +12,6 @@ from urllib.request import unquote
     A custom server written in Python3.4 for use as the backend for this game.
     Uses a simple protocol when receiving messages from the players.
     Multithreaded for increased speed, especially during the actual game.
-
-    Note:
-        Being developer docs, there are private methods that have been
-        documented here. Any method prefixed with _ is considered private in
-        Python by convention, and should not be called outside of the
-        containing class
 */"""
 class ArenaServer:
 
@@ -78,12 +72,18 @@ class ArenaServer:
             ((3 * width) / 4, (3 * height) / 4)
         ]
 
-        # array: player_objects
-        # <List> of the <Player> objects created in Javascript for all players
-        # in the game
+        """/* 
+            array: player_objects
+            <List> of the <Player> objects created in Javascript for all
+            players in the game
+
+            Note:
+                They are <Player> objects in JavaScript, but Python stores them
+                as dicts
+        */"""
         self.player_objects = []
 
-    # Group: Methods
+    # Group: Public Methods
 
     """/*
         Function: close
@@ -121,6 +121,17 @@ class ArenaServer:
                 Thread(
                     target=self._handleGameConnection,
                     args=(client, address)).start()
+
+    """/*
+        Group: Private Methods
+        Note:
+            Being developer docs, there are private methods that have been
+            documented here.
+
+            Any method prefixed with _ is considered private in Python by
+            convention, and should not be called outside of the containing
+            class
+    */"""
 
     """/*
         Function: _handleLobbyConnection

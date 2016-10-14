@@ -117,8 +117,14 @@
         return "";
     }
 
+    /*
+        Function: checkIfServerCrashed
+        Checks if the server has crashed if an AJAX request fails
+
+        Parameters:
+            jqXHR req - <jqXHR> object containing the response information
+    */
     function checkIfServerCrashed(req){
-        //console.log("Status Code: "+);
         if (req.readyState < 4 || req.status >= 500){
             window.location = "../";
         }
