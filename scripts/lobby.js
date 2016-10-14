@@ -57,6 +57,7 @@
             },
             error: function(req, error){
                 console.log(error);
+                //serverCrashed();
             }
         });
     }
@@ -74,5 +75,9 @@
             }
         }
         return "";
+    }
+
+    function serverCrashed(){
+        window.location = "../"
     }
 }());

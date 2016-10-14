@@ -700,7 +700,8 @@
             error: function(req, text){
                 console.log('update ' + req.responseText);
                 console.log('update ' + text);
-                window.setTimeout(updatePlayers, 1000);
+                //serverCrashed();
+                //window.setTimeout(updatePlayers, 1000);
             }
         });
     }
@@ -741,10 +742,14 @@
             error: function(req, text){
                 console.log('setup ' + req.responseText);
                 console.log('setup ' + text);
+                //serverCrashed();
             }
         });
     }
-
+    //Go back to mainpage on server crash
+    function serverCrashed(){
+        window.location = "../"
+    }
     //Game loop methods
     function update(){
         //Main Game Loop
@@ -818,6 +823,7 @@
             }
         }
         window.alert('Game Over! Winner: ' + player.getUserName());
+        
     }
 
 }());
