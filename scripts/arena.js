@@ -111,7 +111,7 @@ handles updating data by sending and receiving from the <Server>
 
     //int: playersAlive
     //The number of <Player>s who remain alive
-    var playersAlive = 4;
+    var playersAlive;
 
     /*
         Class: Bullet
@@ -1081,33 +1081,12 @@ handles updating data by sending and receiving from the <Server>
     */
     function createObstacles(){
         //Later on will be sent by JSON from pre-designed maps
-        //For now, hard code and test bouncing
-
-        // context.beginPath();
-        // context.moveTo(width/2, height/2);
-        // context.lineTo(width/8, height/2);
-        // context.stroke();
         obstacles.push(
             new Obstacle(width/8, height/2, width/2, height/2));
-
-        // context.beginPath();
-        // context.moveTo(width/2, height/2);
-        // context.lineTo((7 * width/8), height/2);
-        // context.stroke();
         obstacles.push(
             new Obstacle(width/2, height/2, (7 * width)/8, height/2));
-
-        // context.beginPath();
-        // context.moveTo(width/2, 0);
-        // context.lineTo(width/2, (3 * height)/8);
-        // context.stroke();
         obstacles.push(
             new Obstacle(width/2, 0, width/2, (3 * height)/8));
-
-        // context.beginPath();
-        // context.moveTo(width/2, height);
-        // context.lineTo(width/2, (5*height)/8);
-        // context.stroke();
         obstacles.push(
             new Obstacle(width/2, (5 * height)/8, width/2, height));
     }
@@ -1163,6 +1142,7 @@ handles updating data by sending and receiving from the <Server>
             },
             ifModified: 'true',
             success : function(json){
+                playersAlive = 0;
                 //Update the players array with the json data
                 json.players.forEach(function(player, index){
                     players[index] = new Player(
@@ -1170,6 +1150,7 @@ handles updating data by sending and receiving from the <Server>
                     if(player.local){
                         local = index;
                     }
+                    playersAlive += 1;
                 });
                 //Draw the names of players into the table
                 players.forEach(function(player, index){
@@ -1322,6 +1303,7 @@ handles updating data by sending and receiving from the <Server>
         for(var i = 0; i < players.length; i ++){
             if(players[i] !== null && players[i].isAlive()){
                 player = players[i];
+                break;
             }
         }
         window.alert('Game Over! Winner: ' + player.getUserName());
