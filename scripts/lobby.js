@@ -82,8 +82,9 @@
     }
 
     function checkIfServerCrashed(req){
-        if (req.status === 500){
-            window.location = "../"
+        //console.log("Status Code: "+);
+        if (req.readyState < 4 || req.status >= 500){
+            window.location = "../";
         }
     }
 }());

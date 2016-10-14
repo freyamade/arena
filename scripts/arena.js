@@ -700,7 +700,7 @@
             error: function(req, text){
                 console.log('update ' + req.responseText);
                 console.log('update ' + text);
-                //serverCrashed();
+                checkIfServerCrashed(req);
                 //window.setTimeout(updatePlayers, 1000);
             }
         });
@@ -742,13 +742,16 @@
             error: function(req, text){
                 console.log('setup ' + req.responseText);
                 console.log('setup ' + text);
-                //serverCrashed();
+                checkIfServerCrashed(req);
             }
         });
     }
     //Go back to mainpage on server crash
-    function serverCrashed(){
-        window.location = "../"
+    function checkIfServerCrashed(req){
+        //console.log("Status Code: "+);
+        if (req.readyState < 4 || req.status >= 500){
+            window.location = "../";
+        }
     }
     //Game loop methods
     function update(){
