@@ -249,19 +249,29 @@ handles updating data by sending and receiving from the <Server>
 
             /*
                 Function: checkPlayers
-                Checks if the Bullet has collided with a Player other than its owner
+                Checks if this bullet has collided with the local player
             */
             checkPlayers : function(){
                 //Check if the bullet has hit a player, and if it has,
                 //send a call to that player saying it's been hit
-                for(var i = 0; i < players.length; i ++){
-                    if(i !== local){
-                        var player = players[i];
-                        if(player !== null && player.isAlive() && collisionBetween(this, player)){
-                            this.destroy(i);
-                            break;
+                // for(var i = 0; i < players.length; i ++){
+                //     if(i !== local){
+                //         var player = players[i];
+                //         if(player !== null && player.isAlive() && collisionBetween(this, player)){
+                //             this.destroy(i);
+                //             break;
+                //         }
+                //     }
+                // }
+                if(this.owner !== local){
+                    players.forEach(function(player, index){
+                        if(index !== local){
+                            if(player !== null && player.isAlive() && collisionBetween(this, player)){
+                                this.destroy(index);
+                                break;
+                            }
                         }
-                    }
+                    });
                 }
             },
 
@@ -1111,9 +1121,6 @@ handles updating data by sending and receiving from the <Server>
                     var index = player.id;
                     if(index !== local){
                         players[index].update(player);
-                    }
-                    else{
-                        players[index].updateLocal(player);
                     }
                 });
                 updatePlayers();
