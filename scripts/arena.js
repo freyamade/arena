@@ -168,6 +168,10 @@ handles updating data by sending and receiving from the <Server>
             //The index of this Bullet inside the owner's <Player.bullets> array
             number : number,
 
+            //boolean: hitPlayer
+            //Flag for whether or not this Bullet has already hit a Player
+            hitPlayer : false,
+
             //Group: Methods
             /*
                 Function: getMovementData
@@ -198,6 +202,18 @@ handles updating data by sending and receiving from the <Server>
                     damage *= 0.8;
                 }
                 return damage;
+            },
+
+            /*
+                Function: hasHitPlayer
+                Getter for whether or not this Bullet has yet to hit a Player
+
+                Returns:
+                    boolean hit - True if this Bullet has hit a Player already,
+                                  else false
+            */
+            hasHitPlayer : function(){
+                return this.hitPlayer;
             },
 
             /*
@@ -267,7 +283,6 @@ handles updating data by sending and receiving from the <Server>
                 if(bullet.owner !== local){
                     var player = players[local];
                     if(player !== null && player.isAlive() && collisionBetween(bullet, player)){
-                        console.log('destroy');
                         bullet.destroy(local);
                     }
                 }
@@ -324,6 +339,7 @@ handles updating data by sending and receiving from the <Server>
                 // }
                 if(hitPlayer !== null){
                     players[hitPlayer].hit(this);
+                    this.hitPlayer = true;
                 }
                 players[this.owner].bulletDestroyed(this.number);
                 //This will be used to update the players when they get hit
@@ -747,13 +763,7 @@ handles updating data by sending and receiving from the <Server>
             */
             hit : function(damagingBullet){
                 //Player hit by bullet, subtract health accordingly
-                var newBullet = true;
-                this.damagingBullets.forEach(function(bullet){
-                    if(bullet.owner === damagingBullet.owner && bullet.number === damagingBullet.number){
-                        newBullet = false;
-                    }
-                });
-                if(newBullet){
+                if(!damagingBullet.hasHitPlayer()){
                     var damage = damagingBullet.getDamage();
                     this.health = (this.health - damage).toFixed(2);
                     this.damagingBullets.push(damagingBullet);
@@ -1110,10 +1120,10 @@ handles updating data by sending and receiving from the <Server>
                 json.players.forEach(function(player){
                     var index = player.id;
                     if(index !== local){
-                        players[index].update(null);
+                        players[index].update(player);
                     }
                     else{
-                        players[index].updateDamagingBullets(player);
+                        players[index].updateDamagingBullets(null);
                     }
                 });
                 updatePlayers();

@@ -387,9 +387,7 @@ class ArenaServer:
                 payload.append(player)
         # Send the payload containing only the active players
         data = {'players': payload, 'ready': ready}
-        response = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nAccess-Control-Allow-Origin: http://cs1.ucc.ie\r\n\r\n"
-        response += dumps(data) + '\r\n'
-        client.sendall(response.encode())
+        client.sendall(self._generateHttpResponse(dumps(data)))
 
     """/*
         Function: _gameUpdate
@@ -414,9 +412,31 @@ class ArenaServer:
         except IndexError:
             self.player_objects.append(player)
         data = {'players': self.player_objects}
-        response = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nAccess-Control-Allow-Origin: http://cs1.ucc.ie\r\n\r\n"
-        response += dumps(data)
-        client.sendall(response.encode())
+        client.sendall(self._generateHttpResponse(dumps(data)))
+
+    """/*
+        Function: _generateHttpResponse
+        Generates a HTTP response with the headers in the list
+        Headers can easily be added or removed as needed
+
+        Parameters:
+            string body - The body of the response to be sent back to the
+                          client.
+
+        Returns:
+            string response - An encoded string containing the headers and the
+                              body that was passed.
+    */"""
+    def _generateHttpResponse(self, body):
+        headers = [
+            "HTTP/1.1 200 OK\r\n",  # Do not remove
+            "Content-Type: application/json\r\n",  # Do not remove
+            # Optional Headers start here
+            "Access-Control-Allow-Origin: http://cs1.ucc.ie\r\n",
+            # End optional headers
+            "\r\n"  # Do not remove
+        ]
+        return (''.join(headers) + body).encode()
 
     """/*
         Function: _generateColour
