@@ -1,3 +1,5 @@
+from datetime import datetime
+from hashlib import sha256
 from json import dumps, loads
 from random import choice
 from select import select
@@ -61,6 +63,11 @@ class ArenaServer:
         # int: lobby_size
         # The amount of players currently in the lobby
         self.lobby_size = 0
+
+        # hash: tokens
+        # Dict of usernames against their tokens
+        self.tokens = {}
+
         width = height = 650
 
         # array: coords
@@ -157,6 +164,8 @@ class ArenaServer:
             callback = self._lobbyQuery
         elif 'start' in msg:
             callback = self._lobbyStart
+        elif 'token' in msg:
+            callback = self._lobbyGetToken
 
         if callback:
             callback(client, address, msg)
@@ -213,7 +222,11 @@ class ArenaServer:
             }
             self.lobby_size += 1
             self.players[player_index] = player
-            msg = 'joined=' + str(player_index)
+            # Generate the token
+            token = sha256(
+                str(datetime.now()).encode()).hexdigest()
+            self.tokens[username] = token
+            msg = 'joined=' + str(player_index) + ';' + token
             client.sendall(msg.encode())
         else:
             client.sendall('lobby full'.encode())
@@ -247,6 +260,7 @@ class ArenaServer:
                     self.coords.append((player['x'], player['y']))
                     self.players[i] = None
                     self.lobby_size -= 1
+                    self.tokens.pop(player['userName'], None)
         client.sendall(dumps(
             {'players':
              [player for player in self.players if player is not None],
@@ -278,6 +292,33 @@ class ArenaServer:
                 self.started = self.started and player['ready']
         client.sendall(dumps(
             {'ready': self.players[player_num]['ready']}).encode())
+
+    """/*
+        Function: _lobbyGetToken
+        If the <Join Game> script detects a pre-existing cookie on the browser,
+        it will query the server to check its token to tell if this player
+        already left the lobby and want to rejoin if the lobby has space
+
+        Parameters:
+            Socket client - The <Socket> to send response through
+            Tuple[string, int] address - <Tuple> containing address and port
+                                         of the client
+            string msg - The msg that was sent by the client
+                         Includes the index of the player in the list of players
+
+        Returns:
+            string token - The token of the player who sent the request
+    */"""
+    def _lobbyGetToken(self, client, address, msg):
+        player_num = int(msg.split('=')[1])
+        player = self.players[player_num]
+        if player:
+            username = player['userName']
+            token = self.tokens[username]
+            print(username, token)
+            client.sendall(token.encode())
+        else:
+            client.sendall('rejoin'.encode())
 
     """/*
         Function: _handleGameConnection
