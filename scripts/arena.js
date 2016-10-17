@@ -792,11 +792,12 @@ handles updating data by sending and receiving from the <Server>
                 //Update bullets for this player
                 var player = this;
                 data.bullets.forEach(function(bullet, index){
-                    if(bullet !== null){
+                    if(bullet !== null && !bullet.hitPlayer){
                         var newBullet = new Bullet(
                             bullet.x, bullet.y, player.id, index);
                         newBullet.xChange = bullet.xChange;
                         newBullet.yChange = bullet.yChange;
+                        newBullet.hitPlayer = bullet.hitPlayer;
                         player.bullets[index] = newBullet;
                     }
                 });
