@@ -743,13 +743,21 @@ handles updating data by sending and receiving from the <Server>
                 Get Bullet damage and subtract it from this Player's health
 
                 Parameters:
-                    Bullet bullet - The <Bullet> object that hit this Player
+                    Bullet damagingBullet - The <Bullet> object that hit this Player
             */
-            hit : function(bullet){
+            hit : function(damagingBullet){
                 //Player hit by bullet, subtract health accordingly
-                var damage = bullet.getDamage();
-                this.health = (this.health - damage).toFixed(2);
-                this.damagingBullets.push(bullet);
+                var newBullet = true;
+                this.damagingBullets.forEach(function(bullet){
+                    if(bullet.owner === damagingBullet.owner && bullet.number === damagingBullet.number){
+                        newBullet = false;
+                    }
+                });
+                if(newBullet){
+                    var damage = damagingBullet.getDamage();
+                    this.health = (this.health - damage).toFixed(2);
+                    this.damagingBullets.push(damagingBullet);
+                }
             },
 
             /*
@@ -782,11 +790,28 @@ handles updating data by sending and receiving from the <Server>
                         player.bullets[index] = newBullet;
                     }
                 });
-                data.damagingBullets.forEach(function(bullet, index){
+
+                //Handle this Player's damagingBullets
+                this.updateDamagingBullets(data);
+            },
+
+            /*
+                Function: updateDamagingBullets
+                Destroys any <Bullet> objects that have damaged any other Player
+
+                Parameters:
+                    obj data - JavaScript object containing Player data sent by the server, or null if it's the local Player
+            */
+            updateDamagingBullets : function(data){
+                var damaging = this.damagingBullets;
+                if(data !== null){
+                    damaging = data.damagingBullets;
+                }
+                damaging.forEach(function(bullet, index){
                     //Destroy any bullets that a non-local Player has been hit by
                     players[bullet.owner].bulletDestroyed(bullet.number);
                 });
-                player.damagingBullets = [];
+                this.damagingBullets = [];
             }
         }
     }
@@ -810,6 +835,8 @@ handles updating data by sending and receiving from the <Server>
             (x1, y1) should be closer to (0, 0) than (x2, y2)
 
             As of v1.0a, Obstacles are only straight lines, meaning x1 == x2 || y1 == y2
+
+            We hope to later implement slanted lines
     */
     function Obstacle(x1, y1, x2, y2){
         //Create an obstacle which will be drawn as a straight line
@@ -1083,7 +1110,10 @@ handles updating data by sending and receiving from the <Server>
                 json.players.forEach(function(player){
                     var index = player.id;
                     if(index !== local){
-                        players[index].update(player);
+                        players[index].update(null);
+                    }
+                    else{
+                        players[index].updateDamagingBullets(player);
                     }
                 });
                 updatePlayers();
