@@ -263,10 +263,12 @@ handles updating data by sending and receiving from the <Server>
                 //         }
                 //     }
                 // }
-                if(this.owner !== local){
+                var bullet = this;
+                if(bullet.owner !== local){
                     var player = players[local];
-                    if(player !== null && player.isAlive() && collisionBetween(this, player)){
-                        this.destroy(local);
+                    if(player !== null && player.isAlive() && collisionBetween(bullet, player)){
+                        console.log('destroy');
+                        bullet.destroy(local);
                     }
                 }
             },
@@ -284,7 +286,7 @@ handles updating data by sending and receiving from the <Server>
                 //and reset the correct coordinate to 'pos'
                 //Ensure the bullet can bounce again
                 if(this.bounces <= 0){
-                    this.destroy()
+                    this.destroy(null)
                     return;
                 }
                 //Get the wall it has collided with, change bullet direction
@@ -307,18 +309,23 @@ handles updating data by sending and receiving from the <Server>
 
                 Parameters:
                     int hitPlayer - index of the <Player> that was hit by this Bullet in <players>
+                                    or null if this Bullet did not hit a Player
             */
             destroy : function(hitPlayer){
                 //Remove this bullet from it's player's list
                 //Specify the player that it hit, let the update method
                 //remove it afterwards
-                var bullet = this;
-                players[this.owner].bullets[this.number] = {
-                    owner : bullet.owner,
-                    number : bullet.number,
-                    hitPlayer : hitPlayer,
-                    damage : bullet.getDamage()
+                // var bullet = this;
+                // players[this.owner].bullets[this.number] = {
+                //     owner : bullet.owner,
+                //     number : bullet.number,
+                //     hitPlayer : hitPlayer,
+                //     damage : bullet.getDamage()
+                // }
+                if(hitPlayer !== null){
+                    players[hitPlayer].hit(this);
                 }
+                players[this.owner].bulletDestroyed(this.number);
                 //This will be used to update the players when they get hit
             },
 
@@ -455,9 +462,9 @@ handles updating data by sending and receiving from the <Server>
             //True as long as this Player's health is above 0
             alive : true,
 
-            //int: damage
-            //The damage this Player still needs to take; to be used for passing damage data through the network
-            damage : null,
+            //array: damagingBullets
+            //Array of <Bullet> objects this player took damage from since the last update
+            damagingBullets : [],
 
             //Group: Methods
             /*
@@ -653,16 +660,9 @@ handles updating data by sending and receiving from the <Server>
                 var player = this;
                 this.bullets.forEach(function(bullet, index){
                     if(bullet !== null){
-                        if(bullet.hasOwnProperty('hitPlayer')){
-                            player.bulletDestroyed(bullet.number);
-                        }
-                        else{
-                            bullet.draw();
-                        }
+                        bullet.draw();
                     }
                 });
-                //Now test for bullet collisions
-                this.updateHealth();
             },
 
             /*
@@ -700,12 +700,11 @@ handles updating data by sending and receiving from the <Server>
             */
             bulletDestroyed : function(number){
                 //this.bullets[number] has been destroyed
-                console.log(this.bullets[number]);
                 this.bullets[number] = null;
                 this.numBullets += 1;
                 //Error checking
-                if(this.numBullets > 3){
-                    this.numBullets = 3;
+                if(this.numBullets > maxBullets){
+                    this.numBullets = maxBullets;
                 }
             },
 
@@ -741,29 +740,16 @@ handles updating data by sending and receiving from the <Server>
             /*
                 Function: hit
                 Handler for when this Player gets hit by another Player's <Bullet>
+                Get Bullet damage and subtract it from this Player's health
 
                 Parameters:
                     Bullet bullet - The <Bullet> object that hit this Player
             */
             hit : function(bullet){
                 //Player hit by bullet, subtract health accordingly
-                var damage = bullet.damage;
-                this.damage = damage;
-            },
-
-            /*
-                Function: updateHealth
-                Handles updating of this Player's <health> using this Player's <damage> variable
-            */
-            updateHealth : function(){
-                //Handles health management
-                if(this.damage !== null){
-                    this.health = (this.health - this.damage).toFixed(2);
-                    if(this.health <= 0){
-                        this.destroy();
-                    }
-                    this.damage = null;
-                }
+                var damage = bullet.getDamage();
+                this.health = (this.health - damage).toFixed(2);
+                this.damagingBullets.push(bullet);
             },
 
             /*
@@ -784,42 +770,23 @@ handles updating data by sending and receiving from the <Server>
             */
             update : function(data){
                 //Update this player with the data that was sent
-                var oldHealth = this.health;
                 $.extend(this, data);
-                if(oldHealth < this.health){
-                    this.health = oldHealth;
-                }
                 //Update bullets for this player
                 var player = this;
                 data.bullets.forEach(function(bullet, index){
                     if(bullet !== null){
-                        if(bullet.hasOwnProperty('hitPlayer')){
-                            players[bullet.hitPlayer].hit(bullet);
-                            players[bullet.owner].bulletDestroyed(bullet.number);
-                        }
-                        else{
-                            var newBullet = new Bullet(
-                                bullet.x, bullet.y, player.id, index);
-                            newBullet.xChange = bullet.xChange;
-                            newBullet.yChange = bullet.yChange;
-                            player.bullets[index] = newBullet;
-                        }
+                        var newBullet = new Bullet(
+                            bullet.x, bullet.y, player.id, index);
+                        newBullet.xChange = bullet.xChange;
+                        newBullet.yChange = bullet.yChange;
+                        player.bullets[index] = newBullet;
                     }
                 });
-            },
-
-            /*
-                Function: updateLocal
-                Updates the local Player with data from the server
-
-                Parameters:
-                    obj data - JavaScript object containing all of the local Player's updated variables from the server
-            */
-            updateLocal : function(data) {
-                //Update health and stuff
-                if(this.health > data.health){
-                    this.health = data.health;
-                }
+                data.damagingBullets.forEach(function(bullet, index){
+                    //Destroy any bullets that a non-local Player has been hit by
+                    players[bullet.owner].bulletDestroyed(bullet.number);
+                });
+                player.damagingBullets = [];
             }
         }
     }
