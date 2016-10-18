@@ -168,10 +168,6 @@ handles updating data by sending and receiving from the <Server>
             //The index of this Bullet inside the owner's <Player.bullets> array
             number : number,
 
-            //boolean: hitPlayer
-            //Flag for whether or not this Bullet has already hit a Player
-            hitPlayer : false,
-
             //Group: Methods
             /*
                 Function: getMovementData
@@ -225,7 +221,10 @@ handles updating data by sending and receiving from the <Server>
                 context.fillRect(this.x, this.y, this.size, this.size);
                 //Checks
                 this.checkWalls();
-                this.checkPlayers();
+                //Only check for players if this belongs to local
+                if(this.owner === local){
+                    this.checkPlayers();
+                }
                 //Update position for the next frame
                 this.x += this.xChange;
                 this.y += this.yChange;
@@ -265,25 +264,20 @@ handles updating data by sending and receiving from the <Server>
 
             /*
                 Function: checkPlayers
-                Checks if this bullet has collided with the local player
+                Checks if this bullet has collided with another Player
             */
             checkPlayers : function(){
                 //Check if the bullet has hit a player, and if it has,
-                //send a call to that player saying it's been hit
-                // for(var i = 0; i < players.length; i ++){
-                //     if(i !== local){
-                //         var player = players[i];
-                //         if(player !== null && player.isAlive() && collisionBetween(this, player)){
-                //             this.destroy(i);
-                //             break;
-                //         }
-                //     }
-                // }
-                var bullet = this;
-                if(bullet.owner !== local){
-                    var player = players[local];
-                    if(player !== null && player.isAlive() && collisionBetween(bullet, player)){
-                        bullet.destroy(local);
+                //add it to this Player's array of damages
+                //This method will now only be called on the local Player
+                for(var i = 0; i < players.length; i ++){
+                    if(i !== local){
+                        var player = players[i];
+                        if(player !== null && player.isAlive() && collisionBetween(this, player)){
+                            players[local].hit(this, i);
+                            this.destroy();
+                            break;
+                        }
                     }
                 }
             },
@@ -320,27 +314,11 @@ handles updating data by sending and receiving from the <Server>
 
             /*
                 Function: destroy
-                Handles destruction of a Bullet, when it hits a player or bounces too many times
-
-                Parameters:
-                    int hitPlayer - index of the <Player> that was hit by this Bullet in <players>
-                                    or null if this Bullet did not hit a Player
+                Handles destruction of a <Bullet>, when it bounces too many times
+                or when it hits a Player, by removing it from it's owner's <bullets> array
             */
-            destroy : function(hitPlayer){
+            destroy : function(){
                 //Remove this bullet from it's player's list
-                //Specify the player that it hit, let the update method
-                //remove it afterwards
-                // var bullet = this;
-                // players[this.owner].bullets[this.number] = {
-                //     owner : bullet.owner,
-                //     number : bullet.number,
-                //     hitPlayer : hitPlayer,
-                //     damage : bullet.getDamage()
-                // }
-                if(hitPlayer !== null){
-                    players[hitPlayer].hit(this);
-                    this.hitPlayer = true;
-                }
                 players[this.owner].bulletDestroyed(this.number);
                 //This will be used to update the players when they get hit
             },
@@ -479,7 +457,7 @@ handles updating data by sending and receiving from the <Server>
             alive : true,
 
             //array: damagingBullets
-            //Array of <Bullet> objects this player took damage from since the last update
+            //Array of objects representing damage done to another Player by this Player's <Bullet>s
             damagingBullets : [],
 
             //Group: Methods
@@ -755,19 +733,21 @@ handles updating data by sending and receiving from the <Server>
 
             /*
                 Function: hit
-                Handler for when this Player gets hit by another Player's <Bullet>
-                Get Bullet damage and subtract it from this Player's health
+                Handles when a <Bullet> owned by this Player hits another Player
 
                 Parameters:
-                    Bullet damagingBullet - The <Bullet> object that hit this Player
+                    Bullet bullet - The Bullet object that hit the Player
+                    int playerId - The id of the Player that was hit by a Bullet
             */
-            hit : function(damagingBullet){
-                //Player hit by bullet, subtract health accordingly
-                if(!damagingBullet.hasHitPlayer()){
-                    var damage = damagingBullet.getDamage();
-                    this.health = (this.health - damage).toFixed(2);
-                    this.damagingBullets.push(damagingBullet);
-                }
+            hit : function(bullet, playerId){
+                //Assume that since 'bullet' was still in bullets it has not hit someone else yet
+                var damage = bullet.getDamage();
+                this.damagingBullets.push(
+                    {
+                        id : playerId,
+                        damage : damage
+                    }
+                );
             },
 
             /*
