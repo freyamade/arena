@@ -201,18 +201,6 @@ handles updating data by sending and receiving from the <Server>
             },
 
             /*
-                Function: hasHitPlayer
-                Getter for whether or not this Bullet has yet to hit a Player
-
-                Returns:
-                    boolean hit - True if this Bullet has hit a Player already,
-                                  else false
-            */
-            hasHitPlayer : function(){
-                return this.hitPlayer;
-            },
-
-            /*
                 Function: draw
                 Draw this Bullet, check collisions, and update positions
             */
@@ -320,7 +308,6 @@ handles updating data by sending and receiving from the <Server>
             destroy : function(){
                 //Remove this bullet from it's player's list
                 players[this.owner].bulletDestroyed(this.number);
-                //This will be used to update the players when they get hit
             },
 
             /*
@@ -751,6 +738,17 @@ handles updating data by sending and receiving from the <Server>
             },
 
             /*
+                Function: takeDamage
+                Updates this Player's health after getting hit by a <Bullet>
+
+                Parameters:
+                    float damage - The damage received by this Player
+                */
+            takeDamage : function(damage){
+                this.health = (this.health - damage).toFixed(2);
+            },
+
+            /*
                 Function: destroy
                 Handler for the death of this Player object
             */
@@ -794,14 +792,13 @@ handles updating data by sending and receiving from the <Server>
                     obj data - JavaScript object containing Player data sent by the server, or null if it's the local Player
             */
             updateDamagingBullets : function(data){
-                var damaging = this.damagingBullets;
                 if(data !== null){
-                    damaging = data.damagingBullets;
+                    data.damagingBullets.forEach(function(damage){
+                        if(damage.id === this.id){
+                            this.takeDamage(damage.damage);
+                        }
+                    });
                 }
-                damaging.forEach(function(bullet, index){
-                    //Destroy any bullets that a non-local Player has been hit by
-                    players[bullet.owner].bulletDestroyed(bullet.number);
-                });
                 this.damagingBullets = [];
             }
         }
