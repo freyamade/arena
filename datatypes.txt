@@ -35,3 +35,6 @@ Intervals are used for JavaScript to schedule the running of functions periodica
 
 Type: jqXHR
 jQuery's wrapper of the native XMLHttpRequest with a superset API.
+
+Type: Damage
+{id : id of the <Player> that was hit, damage : amount of damage to be dealt, sent : has this Damage been sent to the server already}

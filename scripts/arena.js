@@ -787,7 +787,7 @@ handles updating data by sending and receiving from the <Server>
             },
 
             /*
-                Function: updateDamagingBullets
+                Function: updateDamages
                 Handles damages sent from the server intended for the local Player
 
                 Parameters:
