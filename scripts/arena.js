@@ -295,7 +295,7 @@ handles updating data by sending and receiving from the <Server>
                 //and reset the correct coordinate to 'pos'
                 //Ensure the bullet can bounce again
                 if(this.bounces <= 0){
-                    this.destroy(null)
+                    this.destroy()
                     return;
                 }
                 //Get the wall it has collided with, change bullet direction
@@ -777,7 +777,6 @@ handles updating data by sending and receiving from the <Server>
                             bullet.x, bullet.y, player.id, index);
                         newBullet.xChange = bullet.xChange;
                         newBullet.yChange = bullet.yChange;
-                        newBullet.hitPlayer = bullet.hitPlayer;
                         player.bullets[index] = newBullet;
                     }
                 });
@@ -794,14 +793,14 @@ handles updating data by sending and receiving from the <Server>
                     obj data - JavaScript object containing Player data sent by the server, or null if it's the local Player
             */
             updateDamagingBullets : function(data){
-                var damaging = this.damagingBullets;
                 if(data !== null){
-                    damaging = data.damagingBullets;
+                    //Loop through the Player's damage data, and check if any of them are for the local player
+                    data.damagingBullets.forEach(function(damage){
+                        if(damage.id === local){
+                            players[local]//takedamage
+                        }
+                    });
                 }
-                damaging.forEach(function(bullet, index){
-                    //Destroy any bullets that a non-local Player has been hit by
-                    players[bullet.owner].bulletDestroyed(bullet.number);
-                });
                 this.damagingBullets = [];
             }
         }
