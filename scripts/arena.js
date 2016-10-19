@@ -201,18 +201,6 @@ handles updating data by sending and receiving from the <Server>
             },
 
             /*
-                Function: hasHitPlayer
-                Getter for whether or not this Bullet has yet to hit a Player
-
-                Returns:
-                    boolean hit - True if this Bullet has hit a Player already,
-                                  else false
-            */
-            hasHitPlayer : function(){
-                return this.hitPlayer;
-            },
-
-            /*
                 Function: draw
                 Draw this Bullet, check collisions, and update positions
             */
@@ -320,7 +308,6 @@ handles updating data by sending and receiving from the <Server>
             destroy : function(){
                 //Remove this bullet from it's player's list
                 players[this.owner].bulletDestroyed(this.number);
-                //This will be used to update the players when they get hit
             },
 
             /*
@@ -751,6 +738,17 @@ handles updating data by sending and receiving from the <Server>
             },
 
             /*
+                Function: takeDamage
+                Updates this Player's health after getting hit by a <Bullet>
+
+                Parameters:
+                    float damage - The damage received by this Player
+                */
+            takeDamage : function(damage){
+                this.health = (this.health - damage).toFixed(2);
+            },
+
+            /*
                 Function: destroy
                 Handler for the death of this Player object
             */
@@ -797,7 +795,7 @@ handles updating data by sending and receiving from the <Server>
                     //Loop through the Player's damage data, and check if any of them are for the local player
                     data.damagingBullets.forEach(function(damage){
                         if(damage.id === local){
-                            players[local]//takedamage
+                            players[local].takeDamage(damage.damage);
                         }
                     });
                 }
