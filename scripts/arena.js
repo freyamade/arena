@@ -113,6 +113,10 @@ handles updating data by sending and receiving from the <Server>
     //The number of <Player>s who remain alive
     var playersAlive;
 
+    //array: damages
+    //All the damage that has been dealt by the local Player, stored in <Damage> objects
+    var damages = [];
+
     /*
         Class: Bullet
         A Bullet is fired by a <Player>, bounces off walls and damages Players other than the one who fired it
@@ -443,10 +447,6 @@ handles updating data by sending and receiving from the <Server>
             //True as long as this Player's health is above 0
             alive : true,
 
-            //array: damagingBullets
-            //Array of objects representing damage done to another Player by this Player's <Bullet>s
-            damagingBullets : [],
-
             //Group: Methods
             /*
                 Function: getHealth
@@ -729,10 +729,11 @@ handles updating data by sending and receiving from the <Server>
             hit : function(bullet, playerId){
                 //Assume that since 'bullet' was still in bullets it has not hit someone else yet
                 var damage = bullet.getDamage();
-                this.damagingBullets.push(
+                damages.push(
                     {
                         id : playerId,
-                        damage : damage
+                        damage : damage,
+                        sent : false
                     }
                 );
             },
@@ -746,6 +747,10 @@ handles updating data by sending and receiving from the <Server>
                 */
             takeDamage : function(damage){
                 this.health = (this.health - damage).toFixed(2);
+                //Check if player is still alive
+                if(this.health <= 0){
+                    this.destroy();
+                }
             },
 
             /*
@@ -778,28 +783,24 @@ handles updating data by sending and receiving from the <Server>
                         player.bullets[index] = newBullet;
                     }
                 });
-
-                //Handle this Player's damagingBullets
-                this.updateDamagingBullets(data);
             },
 
             /*
                 Function: updateDamagingBullets
-                Destroys any <Bullet> objects that have damaged any other Player
+                Handles damages sent from the server intended for the local Player
 
                 Parameters:
-                    obj data - JavaScript object containing Player data sent by the server, or null if it's the local Player
+                    array damages - JavaScript array containing all damages meant for this Player since last update
             */
-            updateDamagingBullets : function(data){
-                if(data !== null){
-                    //Loop through the Player's damage data, and check if any of them are for the local player
-                    data.damagingBullets.forEach(function(damage){
-                        if(damage.id === local){
-                            players[local].takeDamage(damage.damage);
-                        }
-                    });
-                }
-                this.damagingBullets = [];
+            updateDamages : function(damages){
+                /*
+                    Damaging Bullets are sent to the server. The server will
+                    take them, put them in a dict based on player id and send all of the damage along with the updated data to each player
+                */
+                var player = this;
+                damages.forEach(function(damage){
+                    player.takeDamage(damage);
+                });
             }
         }
     }
@@ -1085,12 +1086,23 @@ handles updating data by sending and receiving from the <Server>
     */
     function updatePlayers(){
         //Pull data from the server and put it into the players list
+        var damageData = [];
+        damages.forEach(function(damage){
+            if(!damage.sent){
+                damageData.push(damage);
+                damage.sent = true;
+            }
+        });
+        var data = {
+            player : players[local],
+            damages : damageData
+        };
         $.ajax({
             url: server,
             dataType: 'json',
             type: 'POST',
             data: {
-                update: JSON.stringify(players[local])
+                update: JSON.stringify(data)
             },
             ifModified : 'true',
             success: function(json){
@@ -1101,9 +1113,11 @@ handles updating data by sending and receiving from the <Server>
                         players[index].update(player);
                     }
                     else{
-                        players[index].updateDamagingBullets(null);
+                        //The damages that come in through the json are for this player only
+                        players[index].updateDamages(json.damages);
                     }
                 });
+                players[local].damagingBullets = [];
                 updatePlayers();
             },
             error: function(req, text){
@@ -1157,7 +1171,7 @@ handles updating data by sending and receiving from the <Server>
             error: function(req, text){
                 console.log('setup ' + req.responseText);
                 console.log('setup ' + text);
-                checkIfServerCrashed(req);
+                // checkIfServerCrashed(req);
             }
         });
     }
