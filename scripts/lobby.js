@@ -86,7 +86,7 @@
             },
             error: function(req, error){
                 checkIfServerCrashed(req);
-                console.log(">>start_game_error: " + req.status);
+                console.log(">>start_game_error: " + req.responseText);
             }
         });
     }

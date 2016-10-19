@@ -113,6 +113,10 @@ handles updating data by sending and receiving from the <Server>
     //The number of <Player>s who remain alive
     var playersAlive;
 
+    //array: damages
+    //All the damage that has been dealt by the local Player, stored in <Damage> objects
+    var damages = [];
+
     /*
         Class: Bullet
         A Bullet is fired by a <Player>, bounces off walls and damages Players other than the one who fired it
@@ -209,7 +213,10 @@ handles updating data by sending and receiving from the <Server>
                 context.fillRect(this.x, this.y, this.size, this.size);
                 //Checks
                 this.checkWalls();
-                this.checkPlayers();
+                //Only check for players if this belongs to local
+                if(this.owner === local){
+                    this.checkPlayers();
+                }
                 //Update position for the next frame
                 this.x += this.xChange;
                 this.y += this.yChange;
@@ -249,16 +256,18 @@ handles updating data by sending and receiving from the <Server>
 
             /*
                 Function: checkPlayers
-                Checks if the Bullet has collided with a Player other than its owner
+                Checks if this bullet has collided with another Player
             */
             checkPlayers : function(){
                 //Check if the bullet has hit a player, and if it has,
-                //send a call to that player saying it's been hit
+                //add it to this Player's array of damages
+                //This method will now only be called on the local Player
                 for(var i = 0; i < players.length; i ++){
                     if(i !== local){
                         var player = players[i];
                         if(player !== null && player.isAlive() && collisionBetween(this, player)){
-                            this.destroy(i);
+                            players[local].hit(this, i);
+                            this.destroy();
                             break;
                         }
                     }
@@ -297,23 +306,12 @@ handles updating data by sending and receiving from the <Server>
 
             /*
                 Function: destroy
-                Handles destruction of a Bullet, when it hits a player or bounces too many times
-
-                Parameters:
-                    int hitPlayer - index of the <Player> that was hit by this Bullet in <players>
+                Handles destruction of a <Bullet>, when it bounces too many times
+                or when it hits a Player, by removing it from it's owner's <bullets> array
             */
-            destroy : function(hitPlayer){
+            destroy : function(){
                 //Remove this bullet from it's player's list
-                //Specify the player that it hit, let the update method
-                //remove it afterwards
-                var bullet = this;
-                players[this.owner].bullets[this.number] = {
-                    owner : bullet.owner,
-                    number : bullet.number,
-                    hitPlayer : hitPlayer,
-                    damage : bullet.getDamage()
-                }
-                //This will be used to update the players when they get hit
+                players[this.owner].bulletDestroyed(this.number);
             },
 
             /*
@@ -448,10 +446,6 @@ handles updating data by sending and receiving from the <Server>
             //boolean: alive
             //True as long as this Player's health is above 0
             alive : true,
-
-            //int: damage
-            //The damage this Player still needs to take; to be used for passing damage data through the network
-            damage : null,
 
             //Group: Methods
             /*
@@ -647,16 +641,9 @@ handles updating data by sending and receiving from the <Server>
                 var player = this;
                 this.bullets.forEach(function(bullet, index){
                     if(bullet !== null){
-                        if(bullet.hasOwnProperty('hitPlayer')){
-                            player.bulletDestroyed(bullet.number);
-                        }
-                        else{
-                            bullet.draw();
-                        }
+                        bullet.draw();
                     }
                 });
-                //Now test for bullet collisions
-                this.updateHealth();
             },
 
             /*
@@ -694,12 +681,11 @@ handles updating data by sending and receiving from the <Server>
             */
             bulletDestroyed : function(number){
                 //this.bullets[number] has been destroyed
-                console.log(this.bullets[number]);
                 this.bullets[number] = null;
                 this.numBullets += 1;
                 //Error checking
-                if(this.numBullets > 3){
-                    this.numBullets = 3;
+                if(this.numBullets > maxBullets){
+                    this.numBullets = maxBullets;
                 }
             },
 
@@ -734,29 +720,36 @@ handles updating data by sending and receiving from the <Server>
 
             /*
                 Function: hit
-                Handler for when this Player gets hit by another Player's <Bullet>
+                Handles when a <Bullet> owned by this Player hits another Player
 
                 Parameters:
-                    Bullet bullet - The <Bullet> object that hit this Player
+                    Bullet bullet - The Bullet object that hit the Player
+                    int playerId - The id of the Player that was hit by a Bullet
             */
-            hit : function(bullet){
-                //Player hit by bullet, subtract health accordingly
-                var damage = bullet.damage;
-                this.damage = damage;
+            hit : function(bullet, playerId){
+                //Assume that since 'bullet' was still in bullets it has not hit someone else yet
+                var damage = bullet.getDamage();
+                damages.push(
+                    {
+                        id : playerId,
+                        damage : damage,
+                        sent : false
+                    }
+                );
             },
 
             /*
-                Function: updateHealth
-                Handles updating of this Player's <health> using this Player's <damage> variable
-            */
-            updateHealth : function(){
-                //Handles health management
-                if(this.damage !== null){
-                    this.health = (this.health - this.damage).toFixed(2);
-                    if(this.health <= 0){
-                        this.destroy();
-                    }
-                    this.damage = null;
+                Function: takeDamage
+                Updates this Player's health after getting hit by a <Bullet>
+
+                Parameters:
+                    float damage - The damage received by this Player
+                */
+            takeDamage : function(damage){
+                this.health = (this.health - damage).toFixed(2);
+                //Check if player is still alive
+                if(this.health <= 0){
+                    this.destroy();
                 }
             },
 
@@ -766,7 +759,6 @@ handles updating data by sending and receiving from the <Server>
             */
             destroy : function(){
                 this.alive = false;
-                playersAlive -= 1;
             },
 
             /*
@@ -778,42 +770,38 @@ handles updating data by sending and receiving from the <Server>
             */
             update : function(data){
                 //Update this player with the data that was sent
-                var oldHealth = this.health;
                 $.extend(this, data);
-                if(oldHealth < this.health){
-                    this.health = oldHealth;
-                }
                 //Update bullets for this player
-                var player = this;
-                data.bullets.forEach(function(bullet, index){
-                    if(bullet !== null){
-                        if(bullet.hasOwnProperty('hitPlayer')){
-                            players[bullet.hitPlayer].hit(bullet);
-                            players[bullet.owner].bulletDestroyed(bullet.number);
-                        }
-                        else{
+                if(this.alive){
+                    var player = this;
+                    data.bullets.forEach(function(bullet, index){
+                        if(bullet !== null && !bullet.hitPlayer){
                             var newBullet = new Bullet(
                                 bullet.x, bullet.y, player.id, index);
                             newBullet.xChange = bullet.xChange;
                             newBullet.yChange = bullet.yChange;
                             player.bullets[index] = newBullet;
                         }
-                    }
-                });
+                    });
+                }
             },
 
             /*
-                Function: updateLocal
-                Updates the local Player with data from the server
+                Function: updateDamagingBullets
+                Handles damages sent from the server intended for the local Player
 
                 Parameters:
-                    obj data - JavaScript object containing all of the local Player's updated variables from the server
+                    array damages - JavaScript array containing all damages meant for this Player since last update
             */
-            updateLocal : function(data) {
-                //Update health and stuff
-                if(this.health > data.health){
-                    this.health = data.health;
-                }
+            updateDamages : function(damages){
+                /*
+                    Damaging Bullets are sent to the server. The server will
+                    take them, put them in a dict based on player id and send all of the damage along with the updated data to each player
+                */
+                var player = this;
+                damages.forEach(function(damage){
+                    player.takeDamage(damage);
+                });
             }
         }
     }
@@ -837,6 +825,8 @@ handles updating data by sending and receiving from the <Server>
             (x1, y1) should be closer to (0, 0) than (x2, y2)
 
             As of v1.0a, Obstacles are only straight lines, meaning x1 == x2 || y1 == y2
+
+            We hope to later implement slanted lines
     */
     function Obstacle(x1, y1, x2, y2){
         //Create an obstacle which will be drawn as a straight line
@@ -1097,12 +1087,23 @@ handles updating data by sending and receiving from the <Server>
     */
     function updatePlayers(){
         //Pull data from the server and put it into the players list
+        var damageData = [];
+        damages.forEach(function(damage){
+            if(!damage.sent){
+                damageData.push(damage);
+                damage.sent = true;
+            }
+        });
+        var data = {
+            player : players[local],
+            damages : damageData
+        };
         $.ajax({
             url: server,
             dataType: 'json',
             type: 'POST',
             data: {
-                update: JSON.stringify(players[local])
+                update: JSON.stringify(data)
             },
             ifModified : 'true',
             success: function(json){
@@ -1113,9 +1114,11 @@ handles updating data by sending and receiving from the <Server>
                         players[index].update(player);
                     }
                     else{
-                        players[index].updateLocal(player);
+                        //The damages that come in through the json are for this player only
+                        players[index].updateDamages(json.damages);
                     }
                 });
+                players[local].damagingBullets = [];
                 updatePlayers();
             },
             error: function(req, text){
@@ -1169,7 +1172,7 @@ handles updating data by sending and receiving from the <Server>
             error: function(req, text){
                 console.log('setup ' + req.responseText);
                 console.log('setup ' + text);
-                checkIfServerCrashed(req);
+                // checkIfServerCrashed(req);
             }
         });
     }
@@ -1299,6 +1302,12 @@ handles updating data by sending and receiving from the <Server>
         Checks to see if only one <Player> is alive. If so, runs <gameOver>
     */
     function isGameOver(){
+        playersAlive = 0;
+        players.forEach(function(player){
+            if(player !== null && player.isAlive()){
+                playersAlive ++;
+            }
+        })
         if(playersAlive === 1){
             gameOver();
         }

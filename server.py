@@ -79,6 +79,10 @@ class ArenaServer:
             ((3 * width) / 4, (3 * height) / 4)
         ]
 
+        # hash: damages
+        # Dict of player indices to damage objects they have received since they last updated
+        self.damages = {}
+
         """/* 
             array: player_objects
             <List> of the <Player> objects created in Javascript for all
@@ -383,13 +387,14 @@ class ArenaServer:
                     player['ready'] = True
                 else:
                     player['local'] = False
+                # Prepare self.damages
+                if i not in self.damages:
+                    self.damages[i] = []
                 ready = ready and player['ready']
                 payload.append(player)
         # Send the payload containing only the active players
         data = {'players': payload, 'ready': ready}
-        response = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nAccess-Control-Allow-Origin: http://cs1.ucc.ie\r\n\r\n"
-        response += dumps(data) + '\r\n'
-        client.sendall(response.encode())
+        client.sendall(self._generateHttpResponse(dumps(data)))
 
     """/*
         Function: _gameUpdate
@@ -400,7 +405,8 @@ class ArenaServer:
             Tuple[string, int] address - <Tuple> containing address and port
                                          of the client
             string msg - The msg that was sent by the client
-                         Includes a JSON string of the local players data
+                         Includes a JSON string of the local players data,
+                         and the damages done by the local player
 
         Returns:
             array players - The current status of all players in the game
@@ -408,15 +414,43 @@ class ArenaServer:
     def _gameUpdate(self, client, address, msg):
         # Handles game updates on the server
         # MUST BE AS EFFICIENT AS POSSIBLE
-        player = loads(unquote(msg.split('update=')[1]))
+        data = loads(unquote(msg.split('update=')[1]))
+        player = data['player']
+        damages = data['damages']
         try:
             self.player_objects[player['id']] = player
+            # Try this here but if it slows down too much pass it to another Thread
+            for damage in damages:
+                self.damages[damage['id']].append(damage['damage'])
         except IndexError:
             self.player_objects.append(player)
-        data = {'players': self.player_objects}
-        response = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nAccess-Control-Allow-Origin: http://cs1.ucc.ie\r\n\r\n"
-        response += dumps(data)
-        client.sendall(response.encode())
+        data = {'players': self.player_objects, 'damages': self.damages[player['id']]}
+        client.sendall(self._generateHttpResponse(dumps(data)))
+        self.damages[player['id']] = []
+
+    """/*
+        Function: _generateHttpResponse
+        Generates a HTTP response with the headers in the list
+        Headers can easily be added or removed as needed
+
+        Parameters:
+            string body - The body of the response to be sent back to the
+                          client.
+
+        Returns:
+            string response - An encoded string containing the headers and the
+                              body that was passed.
+    */"""
+    def _generateHttpResponse(self, body):
+        headers = [
+            "HTTP/1.1 200 OK\r\n",  # Do not remove
+            "Content-Type: application/json\r\n",  # Do not remove
+            # Optional Headers start here
+            "Access-Control-Allow-Origin: http://cs1.ucc.ie\r\n",
+            # End optional headers
+            "\r\n"  # Do not remove
+        ]
+        return (''.join(headers) + body).encode()
 
     """/*
         Function: _generateColour
