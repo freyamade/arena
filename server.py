@@ -364,7 +364,7 @@ class ArenaServer:
             callback = self._gameStartUp
         elif 'update' in msg:
             callback = self._gameUpdate
-        elif 'end' in msg:
+        elif 'gameOver' in msg:
             callback = self._gameOver
 
         if callback:
