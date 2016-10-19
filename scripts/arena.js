@@ -759,7 +759,6 @@ handles updating data by sending and receiving from the <Server>
             */
             destroy : function(){
                 this.alive = false;
-                playersAlive -= 1;
             },
 
             /*
@@ -773,16 +772,18 @@ handles updating data by sending and receiving from the <Server>
                 //Update this player with the data that was sent
                 $.extend(this, data);
                 //Update bullets for this player
-                var player = this;
-                data.bullets.forEach(function(bullet, index){
-                    if(bullet !== null && !bullet.hitPlayer){
-                        var newBullet = new Bullet(
-                            bullet.x, bullet.y, player.id, index);
-                        newBullet.xChange = bullet.xChange;
-                        newBullet.yChange = bullet.yChange;
-                        player.bullets[index] = newBullet;
-                    }
-                });
+                if(this.alive){
+                    var player = this;
+                    data.bullets.forEach(function(bullet, index){
+                        if(bullet !== null && !bullet.hitPlayer){
+                            var newBullet = new Bullet(
+                                bullet.x, bullet.y, player.id, index);
+                            newBullet.xChange = bullet.xChange;
+                            newBullet.yChange = bullet.yChange;
+                            player.bullets[index] = newBullet;
+                        }
+                    });
+                }
             },
 
             /*
@@ -1301,6 +1302,12 @@ handles updating data by sending and receiving from the <Server>
         Checks to see if only one <Player> is alive. If so, runs <gameOver>
     */
     function isGameOver(){
+        playersAlive = 0;
+        players.forEach(function(player){
+            if(player !== null && player.isAlive()){
+                playersAlive ++;
+            }
+        })
         if(playersAlive === 1){
             gameOver();
         }
