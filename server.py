@@ -148,7 +148,6 @@ class ArenaServer:
         # Build the stats file. Name of the file will just be constant, server
         # remembers only the latest game for now
         self._generateStatsFile(datetime.now())
-        self.close()
 
     """/*
         Group: Private Methods
@@ -435,19 +434,25 @@ class ArenaServer:
     def _gameUpdate(self, client, address, msg):
         # Handles game updates on the server
         # MUST BE AS EFFICIENT AS POSSIBLE
-        data = loads(unquote(msg.split('update=')[1]))
-        player = data['player']
-        damages = data['damages']
         try:
-            self.player_objects[player['id']] = player
-            # Try this here but if it slows down too much pass it to another Thread
-            for damage in damages:
-                self.damages[damage['id']].append(damage['damage'])
-        except IndexError:
-            self.player_objects.append(player)
-        data = {'players': self.player_objects, 'damages': self.damages[player['id']]}
-        client.sendall(self._generateHttpResponse(dumps(data)))
-        self.damages[player['id']] = []
+            data = loads(unquote(msg.split('update=')[1]))
+        except ValueError:
+            print('JSON error loading', unquote(msg.split('update=')[1]))
+        else:
+            player = data['player']
+            damages = data['damages']
+            try:
+                self.player_objects[player['id']] = player
+                # Try this here but if it slows down too much pass it to
+                # another Thread
+                for damage in damages:
+                    self.damages[damage['id']].append(damage['damage'])
+            except IndexError:
+                self.player_objects.append(player)
+            data = {'players': self.player_objects,
+                    'damages': self.damages[player['id']]}
+            client.sendall(self._generateHttpResponse(dumps(data)))
+            self.damages[player['id']] = []
 
     """/*
         Function: _gameOver
@@ -506,7 +511,7 @@ class ArenaServer:
         Updates the stats for the game. Run after every call of <_gameUpdate>
     */"""
     def _updateStats(self):
-        for player in self.players_objects:
+        for player in self.player_objects:
             # Check if player died, and append it to the list of players
             if (player['id'] not in self.playerStats and
                     not player['alive']):
@@ -522,6 +527,11 @@ class ArenaServer:
     */"""
     def _generateStatsFile(self, endTime):
         # Reverse the list to give the order in which people died
+        # The winner won't be in the playerStats so we need to add them
+        for player in self.player_objects:
+            if player['id'] not in self.playerStats:
+                self.playerStats.append(player['id'])
+                break
         self.playerStats.reverse()
         stats = []
         for pId in self.playerStats:
@@ -535,7 +545,10 @@ class ArenaServer:
         minutes = seconds // 60
         seconds = seconds % 60
         gameLength = (minutes, seconds)
-        with shelf('stats/stats') as statsfile:
+        print('Generating statsfile')
+        print(stats)
+        print(gameLength)
+        with shelf('./stats/game_stats', writeback=True) as statsfile:
             statsfile['players'] = stats
             statsfile['gameLength'] = gameLength
 

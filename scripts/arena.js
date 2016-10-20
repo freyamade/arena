@@ -1331,7 +1331,6 @@ handles updating data by sending and receiving from the <Server>
         }
         $.get(server, {gameOver: 1});
         window.alert('Game Over! Winner: ' + player.userName);
-        window.location = 'game_stats.py';
     }
 
 }());
