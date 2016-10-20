@@ -9,7 +9,6 @@ from threading import Thread
 from urllib.request import unquote
 
 """/*
-    
     Class: Server
     A custom server written in Python3.4 for use as the backend for this game.
     Uses a simple protocol when receiving messages from the players.
@@ -24,7 +23,7 @@ class ArenaServer:
         Initialises the server and binds it to the host and port specified
 
         Parameters:
-            string host - The host ip of the server. Is usually the local machine
+            string host - The host ip of the server.
             int port - The port number of the server. Default is 44444
     */"""
     def __init__(self, host, port):
@@ -164,7 +163,7 @@ class ArenaServer:
         Function: _handleLobbyConnection
         Method run in a separate thread to handle requests while the game is still
         in the lobby state
-        
+
         Parameters:
             Socket client - The <Socket> to send response through
             Tuple[string, int] address - <Tuple> containing address and port
@@ -178,19 +177,24 @@ class ArenaServer:
         # Callback on client connection, pass off to correct function
         msg = client.recv(256).decode()
         callback = None
-        if 'join' in msg:
-            callback = self._lobbyJoin
-        elif 'query' in msg:
-            callback = self._lobbyQuery
-        elif 'start' in msg:
-            callback = self._lobbyStart
-        elif 'token' in msg:
-            callback = self._lobbyGetToken
+        try:
+            if 'join' in msg:
+                callback = self._lobbyJoin
+            elif 'query' in msg:
+                callback = self._lobbyQuery
+            elif 'start' in msg:
+                callback = self._lobbyStart
+            elif 'token' in msg:
+                callback = self._lobbyGetToken
 
-        if callback:
-            callback(client, address, msg)
-        client.close()
-        return
+            if callback:
+                callback(client, address, msg)
+        except timeout:
+            print('Timeout during', msg)
+            # Check if the request was involving a player already in the lobby
+            # if so, run the (playerLeft) method from Greg's issue
+        finally:
+            client.close()
 
     """/*
         Function: _lobbyJoin
@@ -218,13 +222,13 @@ class ArenaServer:
             username_count = 0
             for i in range(len(self.players)):
                 player = self.players[i]
-                if player == None and not index_assigned:
+                if player is None and not index_assigned:
                     player_index = i
                     index_assigned = True
-                elif player != None and player['userName'] == username:
+                elif player is not None and player['userName'] == username:
                     username_count += 1
             if username_count > 0:
-                username += ' (%i)' %(username_count)
+                username += ' (%i)' % (username_count)
             print(username, 'has joined the lobby!')
             # Get the player coords
             player_coords_index = choice(range(len(self.coords)))
@@ -274,7 +278,7 @@ class ArenaServer:
         self.players[player_num]['queryTimeout'] = 21
         for i in range(len(self.players)):
             player = self.players[i]
-            if player != None:
+            if player is not None:
                 player['queryTimeout'] -= 1
                 if player['queryTimeout'] <= 0:
                     self.coords.append((player['x'], player['y']))
@@ -283,7 +287,7 @@ class ArenaServer:
                     self.tokens.pop(player['userName'], None)
         client.sendall(dumps(
             {'players':
-             [player for player in self.players if player is not None],
+             [p for p in self.players if p is not None],
              'started': self.host_start}).encode())
 
     """/*
@@ -359,21 +363,24 @@ class ArenaServer:
     def _handleGameConnection(self, client, address, repeat=True):
         msg = client.recv(4096).decode()
         callback = None
-        if 'start_up' in msg:
-            callback = self._gameStartUp
-        elif 'update' in msg:
-            callback = self._gameUpdate
-        elif 'gameOver' in msg:
-            callback = self._gameOver
+        try:
+            if 'start_up' in msg:
+                callback = self._gameStartUp
+            elif 'update' in msg:
+                callback = self._gameUpdate
+            elif 'gameOver' in msg:
+                callback = self._gameOver
 
-        if callback:
-            callback(client, address, msg)
-        elif repeat:
-            self._handleGameConnection(client, address, False)
-        client.close()
-        # Update after the client is closed to keep speed
-        self._updateStats()
-        return
+            if callback:
+                callback(client, address, msg)
+            elif repeat:
+                self._handleGameConnection(client, address, False)
+        except timeout:
+            print('Timeout during', msg)
+        finally:
+            client.close()
+            # Update after the client is closed to keep speed
+            self._updateStats()
 
     """/*
         Function: _gameStartUp
@@ -570,8 +577,8 @@ if __name__ == '__main__':
     # Set values for localhost
     hostname = gethostname()
     hostip = gethostbyname(hostname)
-    port = 44444 # Do not change port if you want to make the server public
-                 # (Password support coming soon)
+    port = 44444  # Do not change port if you want to make the server public
+    # (Password support coming soon)
     server_address = (hostip, port)
     print('SERVER ADDRESS DETAILS')
     print('PASS THE FOLLOWING TO YOUR FRIENDS')
