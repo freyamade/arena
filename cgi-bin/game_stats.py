@@ -4,7 +4,7 @@ enable()
 # Because the server runs in the same dir as this file, we don't need cookies
 
 """/*
-    Script: game_stats
+    Script: Game Stats
     Displays the stats of the previous game ran on this server
 */"""
 
