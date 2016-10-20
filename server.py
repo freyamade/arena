@@ -1,10 +1,10 @@
 from datetime import datetime
 from hashlib import sha256
 from json import dumps, loads
+import os
 from random import choice
 from select import select
 from socket import *
-from shelve import open as shelf
 from threading import Thread
 from urllib.request import unquote
 
@@ -546,11 +546,24 @@ class ArenaServer:
         seconds = seconds % 60
         gameLength = (minutes, seconds)
         print('Generating statsfile')
-        print(stats)
-        print(gameLength)
-        with shelf('./stats/game_stats', writeback=True) as statsfile:
-            statsfile['players'] = stats
-            statsfile['gameLength'] = gameLength
+        # Check if the 'stats' folder exists
+        if not os.path.exists('./stats'):
+            os.makedirs('./stats')
+        statsfile = open('./stats/game_stats', 'w')
+        # Write out the data in html format
+        statsfile.write('<table>')
+        statsfile.write('<thead><tr><th>Pos</th><th>Name</th><th>Winner</th>')
+        for i in range(len(stats)):
+            player = stats[i]
+            winner = ''
+            if i == 0:
+                winner = 'Winner!'
+            statsfile.write(
+                '<tr style="color: %s;"><td>%i</td><td>%s</td><td>%s</td></tr>'
+                % (player['colour'], i + 1, player['username'], winner))
+        statsfile.write('</table></br />')
+        statsfile.write('Game Time: %i:%i' % (gameLength))
+        statsfile.close()
 
 
 if __name__ == '__main__':
