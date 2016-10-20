@@ -1329,8 +1329,8 @@ handles updating data by sending and receiving from the <Server>
                 break;
             }
         }
-        window.alert('Game Over! Winner: ' + player.getUserName());
-        
+        $.get(server, {gameOver: 1});
+        window.alert('Game Over! Winner: ' + player.userName);
     }
 
 }());

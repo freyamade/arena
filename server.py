@@ -1,6 +1,7 @@
 from datetime import datetime
 from hashlib import sha256
 from json import dumps, loads
+import os
 from random import choice
 from select import select
 from socket import *
@@ -81,7 +82,19 @@ class ArenaServer:
         # Dict of player indices to damage objects they have received since they last updated
         self.damages = {}
 
-        """/* 
+        # boolean: gameOver
+        # Flag for whether the game has ended or not
+        self.gameOver = False
+
+        # array: playerStats
+        # An ordered array of the players who died, in order
+        self.playerStats = []
+
+        # int: startTime
+        # The time at which the game starts
+        self.startTime = 0
+
+        """/*
             array: player_objects
             <List> of the <Player> objects created in Javascript for all
             players in the game
@@ -121,7 +134,8 @@ class ArenaServer:
                     target=self._handleLobbyConnection,
                     args=(client, address)).start()
         print('Game Starting')
-        while True:  # TODO - Change to end loop when game is over
+        self.startTime = datetime.now()
+        while not self.gameOver:
             connections, wlist, xlist = select([self.sock], [], [], 0.05)
 
             for connection in connections:
@@ -130,6 +144,9 @@ class ArenaServer:
                 Thread(
                     target=self._handleGameConnection,
                     args=(client, address)).start()
+        # Build the stats file. Name of the file will just be constant, server
+        # remembers only the latest game for now
+        self._generateStatsFile(datetime.now())
 
     """/*
         Group: Private Methods
@@ -351,17 +368,19 @@ class ArenaServer:
                 callback = self._gameStartUp
             elif 'update' in msg:
                 callback = self._gameUpdate
+            elif 'gameOver' in msg:
+                callback = self._gameOver
 
             if callback:
                 callback(client, address, msg)
             elif repeat:
                 self._handleGameConnection(client, address, False)
-        except:
+        except timeout:
             print('Timeout during', msg)
-            # Call the player leave method if the player times out
         finally:
             client.close()
-        return
+            # Update after the client is closed to keep speed
+            self._updateStats()
 
     """/*
         Function: _gameStartUp
@@ -422,19 +441,42 @@ class ArenaServer:
     def _gameUpdate(self, client, address, msg):
         # Handles game updates on the server
         # MUST BE AS EFFICIENT AS POSSIBLE
-        data = loads(unquote(msg.split('update=')[1]))
-        player = data['player']
-        damages = data['damages']
         try:
-            self.player_objects[player['id']] = player
-            # Try this here but if it slows down too much pass it to another Thread
-            for damage in damages:
-                self.damages[damage['id']].append(damage['damage'])
-        except IndexError:
-            self.player_objects.append(player)
-        data = {'players': self.player_objects, 'damages': self.damages[player['id']]}
-        client.sendall(self._generateHttpResponse(dumps(data)))
-        self.damages[player['id']] = []
+            data = loads(unquote(msg.split('update=')[1]))
+        except ValueError:
+            print('JSON error loading', unquote(msg.split('update=')[1]))
+        else:
+            player = data['player']
+            damages = data['damages']
+            try:
+                self.player_objects[player['id']] = player
+                # Try this here but if it slows down too much pass it to
+                # another Thread
+                for damage in damages:
+                    self.damages[damage['id']].append(damage['damage'])
+            except IndexError:
+                self.player_objects.append(player)
+            data = {'players': self.player_objects,
+                    'damages': self.damages[player['id']]}
+            client.sendall(self._generateHttpResponse(dumps(data)))
+            self.damages[player['id']] = []
+
+    """/*
+        Function: _gameOver
+        Handler for when the game ends
+
+        Parameters:
+            Socket client - The <Socket> to send response through
+            Tuple[string, int] address - <Tuple> containing address and port
+                                         of the client
+            string msg - The msg that was sent by the client
+                         States that the game is over
+    */"""
+    def _gameOver(self, client, address, msg):
+        # Set gameOver to be True, javascript will redirect to game over screen
+        # Once game is over server will write to shelve file in the main thread
+        # with the data from the game
+        self.gameOver = True
 
     """/*
         Function: _generateHttpResponse
@@ -470,6 +512,66 @@ class ArenaServer:
     */"""
     def _generateColour(self):
         return ''.join([choice('0123456789ABCDEF') for x in range(6)])
+
+    """/*
+        Function: _updateStats
+        Updates the stats for the game. Run after every call of <_gameUpdate>
+    */"""
+    def _updateStats(self):
+        for player in self.player_objects:
+            # Check if player died, and append it to the list of players
+            if (player['id'] not in self.playerStats and
+                    not player['alive']):
+                self.playerStats.append(player['id'])
+
+    """/*
+        Function: _generateStatsFile
+        Generates a shelf file named 'stats', which stores the stats from the
+        previous games
+
+        Parameters:
+            time endTime - The time at which the game ended
+    */"""
+    def _generateStatsFile(self, endTime):
+        # Reverse the list to give the order in which people died
+        # The winner won't be in the playerStats so we need to add them
+        for player in self.player_objects:
+            if player['id'] not in self.playerStats:
+                self.playerStats.append(player['id'])
+                break
+        self.playerStats.reverse()
+        stats = []
+        for pId in self.playerStats:
+            player = self.player_objects[pId]
+            stats.append({
+                'username': player['userName'],
+                'colour': player['colour']
+            })
+        # Get the game time
+        seconds = (endTime - self.startTime).seconds
+        minutes = seconds // 60
+        seconds = seconds % 60
+        gameLength = (minutes, seconds)
+        print('Generating statsfile')
+        # Check if the 'stats' folder exists
+        if not os.path.exists('./stats'):
+            os.makedirs('./stats')
+        statsfile = open('./stats/game_stats', 'w')
+        # Write out the data in html format
+        statsfile.write('<table>')
+        statsfile.write('<thead><tr><th>Pos</th><th>Name</th><th>Winner</th>')
+        for i in range(len(stats)):
+            player = stats[i]
+            winner = ''
+            if i == 0:
+                winner = 'Winner!'
+            statsfile.write(
+                '<tr style="color: %s;"><td>%i</td><td>%s</td><td>%s</td></tr>'
+                % (player['colour'], i + 1, player['username'], winner))
+        statsfile.write('</table></br />')
+        statsfile.write('Game Time: %i:%i' % (gameLength))
+        statsfile.close()
+
 
 if __name__ == '__main__':
     # Set values for localhost
