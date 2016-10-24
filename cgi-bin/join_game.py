@@ -61,10 +61,7 @@ def newGame():
             error = ('Connection failed. '
                      'Check that the server is open and try again.')
         else:
-            error = str(e) + """<br />Please report that you found error
-                    number %i
-                    <a href="https://github.com/CompSci2k18/Arena/issues">
-                    here</a>""" % num
+            error = str(e)
     except Exception as e:
         error = str(e)
     finally:
@@ -109,31 +106,8 @@ if len(data) > 0:
     finally:
         print(cookie)
         if error == '':
-            print('Status: 303')
-            print('Location: lobby.py')
-
-form = """
-<form action="" method="POST">
-Username: <input type="text" name="username" placeholder="Guest" value="%s"/>
-<br />
-IP Address: <input type="text" name="address" required value="%s" /><br />
-Port Number: <input type="text" name="port" value="44444" required value="%s"
-/><br />
-<input type="submit" />
-</form>""" % (username, ip_address, port)
-
-print('Content-Type: text/html')
-print()
-print("""
-<!DOCTYPE html>
-<html>
-    <head>
-        <title>Arena - Join Game</title>
-    </head>
-
-    <body>
-        <h1>Join A Game</h1>
-        %s
-        <h3>%s</h3>
-    </body>
-</html>""" % (form, error))
+            print('Status: 200')
+        else:
+            print('Status: 400')
+            print()
+            print(error)
