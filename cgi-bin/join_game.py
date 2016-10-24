@@ -55,9 +55,18 @@ def newGame():
         else:
             error = 'Lobby Full'
         sock.close()
+    except OSError as e:
+        num = int(e.errno)
+        if num == 111:
+            error = ('Connection failed. '
+                     'Check that the server is open and try again.')
+        else:
+            error = str(e) + """<br />Please report that you found error
+                    number %i
+                    <a href="https://github.com/CompSci2k18/Arena/issues">
+                    here</a>""" % num
     except Exception as e:
-        # #12 will be fixed here
-        error = str(e) + '<br />'
+        error = str(e)
     finally:
         return error
 
@@ -99,14 +108,17 @@ if len(data) > 0:
                 error += newGame()
     finally:
         print(cookie)
-        print('Status: 303')
-        print('Location: lobby.py')
+        if error == '':
+            print('Status: 303')
+            print('Location: lobby.py')
 
 form = """
 <form action="" method="POST">
-Username: <input type="text" name="username" placeholder="Guest" value="%s"/><br />
+Username: <input type="text" name="username" placeholder="Guest" value="%s"/>
+<br />
 IP Address: <input type="text" name="address" required value="%s" /><br />
-Port Number: <input type="text" name="port" value="44444" required  value="%s" /><br />
+Port Number: <input type="text" name="port" value="44444" required value="%s"
+/><br />
 <input type="submit" />
 </form>""" % (username, ip_address, port)
 
