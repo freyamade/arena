@@ -19,9 +19,21 @@
 
     <!--Join Game AJAX-->
     <script>
+        /*
+            Script: Index
+            JavaScript used to join a game from the modal form on the home page.
+            Sends a POST request to <Join Game>
+        */
+
+        // obj: join_status
+        // Pointer to the label element in the form to display any errors
         var join_status;
         $(document).ready(init);
 
+        /*
+            Function: init
+            Initialises variables, sets up event listeners
+        */
         function init(){
             join_status = $('#join_status');
             $("#join_form").submit(function(e){
@@ -51,6 +63,14 @@
             message('Error - ' + xhr.responseText, 'danger');
         });
 
+        /*
+            Function: message
+            Display a message in the modal depending on the state of the AJAX request
+
+            Parameters:
+                string msg - The message to be displayed
+                string level - The level (info, error) of the message
+        */
         function message(msg, level){
             join_status.removeClass();
             join_status.addClass('label label-' + level);

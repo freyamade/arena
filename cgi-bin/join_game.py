@@ -8,7 +8,7 @@ from http.cookies import SimpleCookie
 
 """/*
     Script: Join Game
-    Webpage in Python to allow a user to join an active game server.
+    Handles join requests from the form on the index page.
     Servers can only be joined if they are not full and have not started.
 */"""
 

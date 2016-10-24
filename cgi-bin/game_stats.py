@@ -10,7 +10,7 @@ from json import loads
 */"""
 
 # string: stats
-# Player stats data from the server, put into a HTML table
+# Player stats data from the server, to be put into a HTML table
 stats = ''
 
 # string: gameLength
