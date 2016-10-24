@@ -21,18 +21,18 @@ try:
     data = loads(statsfile.read())
     statsfile.close()
     stats = ('<table class="table table-striped table-hover table-bordered">'
-             '<thead><tr><th class="text-center">Position</th>'
-             '<th class="text-center">User Name</th></tr></thead><tbody>')
+             '<thead><tr><th class="text-center">User Name</th>'
+             '<th class="text-center">Position</th></tr></thead><tbody>')
     players = data['players']
     for i in range(len(players)):
         player = players[i]
-        stats += '<tr style="color: %s;"><td>%i</td><td>%s</td></tr>' % (
-            player['colour'], i, player['username'])
+        stats += '<tr style="color: %s;"><td class="text-center">%s</td><td class="text-center">%i</td></tr>' % (
+            player['colour'], player['username'], i + 1)
     stats += '</tbody></table>'
 
     mins, secs = data['gameLength']
-    gameLength = ('<div class="label label-primary">'
-                  '<strong>Game Time:</strong> %i:%i'
+    gameLength = ('<div class="alert alert-info">'
+                  '<strong>Game Time:</strong> %i mins, %i secs'
                   '</div>')
     gameLength = gameLength % (mins, secs)
 except IOError:
@@ -66,7 +66,6 @@ print("""
         <div class="container">
             <h1 class="page-heading">Last Game Stats</h1>
             %s
-
             %s
             <a class="btn btn-primary" href="../index.html">
                 <span class="glyphicon glyphicon-home"></span> 

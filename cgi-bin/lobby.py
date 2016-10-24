@@ -48,7 +48,7 @@ try:
     player_num = int(cookie.get('player_num').value)
     ip_address, port = cookie.get('game_address').value.split(':')
     if player_num == 0:
-        button = '<button>Start Game</button>' # Add onclick
+        button = '<button class="btn btn-success"><span class="glyphicon glyphicon-ok"></span> Start Game</button>'
 
     # Query the server for players
     sock = socket(AF_INET, SOCK_STREAM)
@@ -66,11 +66,21 @@ try:
         print()
         print(dumps({'players': data['players'], 'started': data['started']}))
     else:
-        players = ('<table class="table table-striped table-bordered">'
-                   '<thead><tr><th>User Name</th></tr></thead><tbody>'
+        players = """<table class="table table-striped table-bordered">
+                         <thead>
+                             <tr>
+                                 <th class="text-center">
+                                     User Name
+                                 </th>
+                             </tr>
+                         </thead>
+                         <tbody>"""
         for player in data['players']:
-            players += '<tr style="color: %s;"><td>%s</td></tr>' % (
-                player['colour'], player['userName'])
+            players += """<tr style="color: %s;">
+                              <td class="text-center">
+                                  %s
+                              </td>
+                          </tr>""" % (player['colour'], player['userName'])
         players += '</tbody></table>'
 
         print('Content-Type: text/html')
@@ -99,12 +109,14 @@ try:
             </head>
 
             <body>
-                %s
-                <br />
-                %s
+                <div class="container">
+                    <h1 class="page-heading">Lobby of %s</h1>
+                    %s
+                    <br />
+                    %s
+                </div>
             </body>
-        </html>""" % (players, button))
-
+        </html>""" % (ip_address, players, button))
 except:
     # Redirect home
     print('Status: 303')

@@ -59,7 +59,7 @@ def newGame():
         num = int(e.errno)
         if num == 111:
             error = ('Connection failed. '
-                     'Check that the server is open and try again.')
+                     'Check that the server is open and the ip is correct.')
         else:
             error = str(e)
     except Exception as e:
@@ -70,7 +70,7 @@ def newGame():
 if len(data) > 0:
     # Check the passed address for connection
     username = escape(data.getfirst('username', 'Guest'))
-    ip_address = escape(data.getfirst('address', ''))
+    ip_address = escape(data.getfirst('ip_address', ''))
     port = escape(data.getfirst('port', port))
 
     cookie = SimpleCookie()
@@ -104,9 +104,11 @@ if len(data) > 0:
             except:
                 error += newGame()
     finally:
-        print(cookie)
+        print('Content-Type: text/html')
         if error == '':
             print('Status: 200')
+            print(cookie)
+            print()
         else:
             print('Status: 400')
             print()
