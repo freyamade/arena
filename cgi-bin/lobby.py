@@ -52,7 +52,6 @@ try:
 
     # Query the server for players
     sock = socket(AF_INET, SOCK_STREAM)
-    sock.bind(('', 44445))
     sock.connect((ip_address, int(port)))
     msg = 'query=' + str(player_num) 
     sock.sendall(msg.encode())
@@ -69,7 +68,8 @@ try:
     else:
         players = '<table><thead><tr><th>User Name</th></tr></thead><tbody>'
         for player in data['players']:
-            players += '<tr style="color: %s;"><td>%s</td></tr>' % (player['colour'], player['userName'])
+            players += '<tr style="color: %s;"><td>%s</td></tr>' % (
+                player['colour'], player['userName'])
         players += '</tbody></table>'
 
         print('Content-Type: text/html')
