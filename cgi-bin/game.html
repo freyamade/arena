@@ -1,45 +1,61 @@
 <html>
   <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
     <title>The Arena</title>
-    <meta content="">
-    <link rel="stylesheet" href="../arena-style.css" />
-    <!--Include jQuery-->
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
+    <!--jQuery-->
     <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s=" crossorigin="anonymous"></script>
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+    <!--Personal stuff-->
     <script src="../scripts/arena.js"></script>
+    <link rel="stylesheet" href="../arena-style.css" />
   </head>
   <body>
-    <canvas height="650" width="650"></canvas>
-    <table id="player-data">
-      <thead>
-        <tr>
-          <th>Player</th>
-          <th>Health</th>
-          <th>Bullets</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td class="name-container"></td>
-          <td class="health-container"></td>
-          <td class="bullets-container"></td>
-        </tr>
-        <tr>
-          <td class="name-container"></td>
-          <td class="health-container"></td>
-          <td class="bullets-container"></td>
-        </tr>
-        <tr>
-          <td class="name-container"></td>
-          <td class="health-container"></td>
-          <td class="bullets-container"></td>
-        </tr>
-        <tr>
-          <td class="name-container"></td>
-          <td class="health-container"></td>
-          <td class="bullets-container"></td>
-        </tr>
-      </tbody>
-    </table>
-    <p>Found an issue? Submit it <a href="https://github.com/CompSci2k18/Arena/issues">here</a> :) </p>
+    <div class="container">
+      <canvas height="650" width="650"></canvas>
+      <table id="player-data" class="table-striped table-bordered">
+        <thead>
+          <tr>
+            <th class="text-center">Player</th>
+            <th class="text-center">Health</th>
+            <th class="text-center">Bullets</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="name-container text-center"></td>
+            <td class="health-container"></td>
+            <td class="bullets-container"></td>
+          </tr>
+          <tr>
+            <td class="name-container text-center"></td>
+            <td class="health-container"></td>
+            <td class="bullets-container"></td>
+          </tr>
+          <tr>
+            <td class="name-container text-center"></td>
+            <td class="health-container"></td>
+            <td class="bullets-container"></td>
+          </tr>
+          <tr>
+            <td class="name-container text-center"></td>
+            <td class="health-container"></td>
+            <td class="bullets-container"></td>
+          </tr>
+        </tbody>
+      </table>
+      <p>Found an issue? Submit it <a href="https://github.com/CompSci2k18/Arena/issues">here</a> :) </p>
+    </div>
   </body>
 </html>
