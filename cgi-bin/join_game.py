@@ -37,7 +37,8 @@ error = ''
     Set up the player in the lobby of the passed address, if they aren't
     already connected to the server at the address
 */"""
-def newGame(error):
+def newGame():
+    error = ''
     sock = socket(AF_INET, SOCK_STREAM)
     try:
         sock.connect((ip_address, int(port)))
@@ -57,6 +58,8 @@ def newGame(error):
     except Exception as e:
         # #12 will be fixed here
         error = str(e) + '<br />'
+    finally:
+        return error
 
 if len(data) > 0:
     # Check the passed address for connection
@@ -70,14 +73,14 @@ if len(data) > 0:
         cookie.load(environ['HTTP_COOKIE'])
     except KeyError:
         # No cookie, run the new game function
-        newGame(error)
+        error += newGame()
     else:
         # Cookie exists, check if the address in the form is equal to the
         # address in the cookie
         cookie_address = cookie.get('game_address').value
         if cookie_address != (ip_address + ':' + port):
             # The player has connected to a new game
-            newGame(error)
+            error += newGame()
         # Else, check if they are already in this game
         else:
             sock = socket(AF_INET, SOCK_STREAM)
@@ -91,9 +94,9 @@ if len(data) > 0:
                 cookie_token = cookie.get('game_token').value
                 if 'rejoin' in response or response != cookie_token:
                     # This player has to be join the game
-                    newGame(error)
+                    error += newGame()
             except:
-                newGame(error)
+                error += newGame()
     finally:
         print(cookie)
         print('Status: 303')
