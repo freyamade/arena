@@ -557,19 +557,9 @@ class ArenaServer:
         if not os.path.exists('./stats'):
             os.makedirs('./stats')
         statsfile = open('./stats/game_stats', 'w')
-        # Write out the data in html format
-        statsfile.write('<table>')
-        statsfile.write('<thead><tr><th>Pos</th><th>Name</th><th>Winner</th>')
-        for i in range(len(stats)):
-            player = stats[i]
-            winner = ''
-            if i == 0:
-                winner = 'Winner!'
-            statsfile.write(
-                '<tr style="color: %s;"><td>%i</td><td>%s</td><td>%s</td></tr>'
-                % (player['colour'], i + 1, player['username'], winner))
-        statsfile.write('</table></br />')
-        statsfile.write('Game Time: %i:%i' % (gameLength))
+        # Write out the data in JSON format
+        data = {'players': stats, 'gameLength': gameLength}
+        statsfile.write(dumps(data))
         statsfile.close()
 
 

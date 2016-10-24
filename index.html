@@ -1,24 +1,122 @@
 <!DOCTYPE html>
 <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
     <title>Welcome to the Arena!</title>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
+    <!--jQuery-->
+    <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s=" crossorigin="anonymous"></script>
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+    <!--Join Game AJAX-->
+    <script>
+        var join_status;
+        $(document).ready(init);
+
+        function init(){
+            join_status = $('#join_status');
+            $("#join_form").submit(function(e){
+                var username = $('#username').val();
+                if(username === ''){
+                    username = 'Guest';
+                }
+                var data = {
+                    username: username,
+                    ip_address: $('#ip').val(),
+                    port: $('#port').val()
+                }
+                console.log(data);
+                $.post('cgi-bin/join_game.py', data);
+                message('Loading', 'info');
+                e.preventDefault();
+            });
+        }
+
+        $(document).ajaxSuccess(function(e, xhr){
+            //Redirect to lobby.py
+            //Might have to fix things to make cookies work
+            window.location = 'cgi-bin/lobby.py';
+        });
+
+        $(document).ajaxError(function(e, xhr){
+            message('Error - ' + xhr.responseText, 'danger');
+        });
+
+        function message(msg, level){
+            join_status.removeClass();
+            join_status.addClass('label label-' + level);
+            join_status.html(msg);
+        }
+    </script>
 </head>
 <body>
-    <h1>Welcome to the Arena</h1>
-    <a href="cgi-bin/join_game.py">Join Game</a>
-    <br /><br />
-    <a href="cgi-bin/game_stats.py">Stats from the last match</a>
-    <hr />
-    <!--News can go here-->
-    <!--Maybe set this up as a php script to pull news from a db later?-->
-    <section id="news">
-        <h1>News</h1>
-        <article>
-            <h1>Beta development</h1>
-            <p>Currently, this game is in the alpha state of version 1.0.
-                We are working hard at fixing all the issues the game currently
-                has in order to get a beta out to you. Thank you for your
-                patience :)
-            </p>
-        </article>
-    </section>
+    <div class="container">
+        <h1 class="page-heading">Welcome to the Arena <small>v1 Beta Devel</small></h1>
+        <button class="btn btn-primary" data-toggle="modal" data-target="#join_game"><span class="glyphicon glyphicon-share-alt"></span> Join Game</button>
+        <a class="btn btn-info" href="cgi-bin/game_stats.py"><span class="glyphicon glyphicon-stats"></span> Game Stats</a>
+        <hr />
+        <!--News can go here-->
+        <!--Maybe set this up as a php script to pull news from a db later?-->
+        <section id="news" class="panel panel-info">
+            <div class="panel-heading">
+                <h2>News</h2>
+            </div>
+            <div class="panel-body">
+                <article>
+                    <h3>Beta development <small>24/Oct/2016</small></h3>
+                    <p>Currently, this game is in the alpha state of version 1.0.
+                        We are working hard at fixing all the issues the game currently
+                        has in order to get a beta out to you. Thank you for your
+                        patience :)
+                    </p>
+                </article>
+            </div>
+        </section>
+    </div>
+
+    <!--Modals-->
+    <div id="join_game" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <!--Content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">
+                        Join Game
+                    </h4>
+                    <div id="join_status"></div>
+                </div>
+                <div class="modal-body">
+                    <form id="join_form" action="" method="POST">
+                        <div class="form-group">
+                            <label for="username">Username</label>
+                            <input type="text" id="username" name="username" placeholder="Guest" value="" class="form-control" />
+                        </div>
+                        <div class="form-group">
+                            <label for="ip">IP Address</label>
+                            <input id="ip" type="text" name="address" required value="" class="form-control" />
+                        </div>
+                        <div class="form-group">
+                            <label for="port">Port Number</label>
+                            <input id="port" type="text" name="port" value="44444" required class="form-control" />
+                        </div>
+                        <button type="button" class="btn btn-danger" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span> Cancel</button>
+                        <button type="submit" class="btn btn-primary pull-right"><span class="glyphicon glyphicon-share-alt"></span> Join Game</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="container footer">
+        <p>All icons from <a href="http://glyphicons.com/">Glyphicons</a></p>
+    </footer>
 </body>

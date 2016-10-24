@@ -59,12 +59,9 @@ def newGame():
         num = int(e.errno)
         if num == 111:
             error = ('Connection failed. '
-                     'Check that the server is open and try again.')
+                     'Check that the server is open and the ip is correct.')
         else:
-            error = str(e) + """<br />Please report that you found error
-                    number %i
-                    <a href="https://github.com/CompSci2k18/Arena/issues">
-                    here</a>""" % num
+            error = str(e)
     except Exception as e:
         error = str(e)
     finally:
@@ -73,7 +70,7 @@ def newGame():
 if len(data) > 0:
     # Check the passed address for connection
     username = escape(data.getfirst('username', 'Guest'))
-    ip_address = escape(data.getfirst('address', ''))
+    ip_address = escape(data.getfirst('ip_address', ''))
     port = escape(data.getfirst('port', port))
 
     cookie = SimpleCookie()
@@ -107,33 +104,12 @@ if len(data) > 0:
             except:
                 error += newGame()
     finally:
-        print(cookie)
+        print('Content-Type: text/html')
         if error == '':
-            print('Status: 303')
-            print('Location: lobby.py')
-
-form = """
-<form action="" method="POST">
-Username: <input type="text" name="username" placeholder="Guest" value="%s"/>
-<br />
-IP Address: <input type="text" name="address" required value="%s" /><br />
-Port Number: <input type="text" name="port" value="44444" required value="%s"
-/><br />
-<input type="submit" />
-</form>""" % (username, ip_address, port)
-
-print('Content-Type: text/html')
-print()
-print("""
-<!DOCTYPE html>
-<html>
-    <head>
-        <title>Arena - Join Game</title>
-    </head>
-
-    <body>
-        <h1>Join A Game</h1>
-        %s
-        <h3>%s</h3>
-    </body>
-</html>""" % (form, error))
+            print('Status: 200')
+            print(cookie)
+            print()
+        else:
+            print('Status: 400')
+            print()
+            print(error)

@@ -53,7 +53,7 @@
                             if(index > 0){
                                 $('button').prop('disabled', false);
                             }
-                            $(players).append('<tr style="color: ' + player.colour + ';"><td>' + player.userName + '</td></tr>');
+                            $(players).append('<tr style="color: ' + player.colour + ';"><td class="text-center">' + player.userName + '</td></tr>');
                         });
                     }
                     else{
