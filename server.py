@@ -196,10 +196,18 @@ class ArenaServer:
                 data = data.decode()
                 # Send back server data
                 # TODO - Add password data once we finish #9
-                serverState = {'players': self.players}
-                broadcastSock.sendto(dumps(serverState).encode(), address)
+                # Only send response if data matches protocol, JIC
+                if data == 'arena_broadcast_req':
+                    print('Received arena broadcast req')
+                    data = {'players': self.players}
+                    serverState = {
+                        'address': (self.host, self.port),
+                        'data': data
+                    }
+                    broadcastSock.sendto(dumps(serverState).encode(), address)
             except timeout:
                 pass
+        print('Broadcast service closing')
 
     """/*
         Function: _handleLobbyConnection
