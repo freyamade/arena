@@ -94,6 +94,15 @@ class ArenaServer:
         # The time at which the game starts
         self.startTime = 0
 
+        # obj: broadcastThread
+        # The Thread that will manage the <_handleBroadcast> method
+        self.broadcastThread = Thread(target=self._handleBroadcast)
+
+        # boolean: closing
+        # True when the <close> method is called.
+        # Used to get the <broadcastThread> to finish
+        self.closing = False
+
         """/*
             array: player_objects
             <List> of the <Player> objects created in Javascript for all
@@ -113,6 +122,8 @@ class ArenaServer:
     */"""
     def close(self):
         print('Server Closing')
+        self.closing = True
+        self.broadcastThread.join()
         self.sock.close()
 
     """/*
@@ -149,6 +160,13 @@ class ArenaServer:
         self._generateStatsFile(datetime.now())
 
     """/*
+        Function: broadcast
+        Begins listening for broadcasts on a separate Thread
+    */"""
+    def broadcast(self):
+        self.broadcastThread.start()
+
+    """/*
         Group: Private Methods
         Note:
             Being developer docs, there are private methods that have been
@@ -158,6 +176,38 @@ class ArenaServer:
             convention, and should not be called outside of the containing
             class
     */"""
+
+    """/*
+        Function: _handleBroadcast
+        Handles broadcast requests from a client, and responds with
+        the data of this server
+    */"""
+    def _handleBroadcast(self):
+        broadcastSock = socket(AF_INET, SOCK_DGRAM)
+        broadcastSock.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
+        broadcastSock.bind(('', 44445))
+        # Only wait 1 second before giving up and re-running the loop
+        broadcastSock.settimeout(1)
+        print('Starting up broadcast service')
+        # Only run this thread while the game hasn't started
+        while not self.closing and not self.started:
+            try:
+                data, address = broadcastSock.recvfrom(1024)
+                data = data.decode()
+                # Send back server data
+                # TODO - Add password data once we finish #9
+                # Only send response if data matches protocol, JIC
+                if data == 'arena_broadcast_req':
+                    print('Received arena broadcast req')
+                    data = {'players': self.players}
+                    serverState = {
+                        'address': (self.host, self.port),
+                        'data': data
+                    }
+                    broadcastSock.sendto(dumps(serverState).encode(), address)
+            except timeout:
+                pass
+        print('Broadcast service closing')
 
     """/*
         Function: _handleLobbyConnection
@@ -576,6 +626,7 @@ if __name__ == '__main__':
     print('Port:', port)
     server = ArenaServer(hostip, port)
     try:
+        server.broadcast()
         server.listen()
     except KeyboardInterrupt:
         pass
