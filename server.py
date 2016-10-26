@@ -411,7 +411,7 @@ class ArenaServer:
             message from the client
     */"""
     def _handleGameConnection(self, client, address, repeat=True):
-        msg = client.recv(4096).decode()
+        msg = client.recv(8192).decode()
         callback = None
         try:
             if 'start_up' in msg:

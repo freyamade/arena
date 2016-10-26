@@ -137,7 +137,8 @@ handles updating data by sending and receiving from the <Server>
             //Group: Variables
 
             //int: size
-            //Size of this Bullet (should deprecate)
+            //Size of this Bullet
+            //Used in <collisionBetween>
             size : bulletSize,
 
             //int: x
@@ -400,7 +401,8 @@ handles updating data by sending and receiving from the <Server>
             //Group: Variables
 
             //int: size
-            //Size of this Player in pixels (should deprecate)
+            //Size of this Player in pixels
+            //Used in <collisionBetween>
             size : playerSize,
             
             //int: x
@@ -494,23 +496,6 @@ handles updating data by sending and receiving from the <Server>
             isAlive : function(){
                 //Public getter for Alive state
                 return this.alive;
-            },
-
-            /*
-                Function: getMovementData
-                Getter for this Player's current movement data
-
-                Returns:
-                    obj data - Javascript object containing this Players's <x>, <y>, <xChange> and <yChange> values
-            */
-            getMovementData : function(){
-                //Public getter for position
-                return {
-                    x : this.x,
-                    y : this.y,
-                    xChange : this.xChange,
-                    yChange : this.yChange,
-                }
             },
 
             /*
