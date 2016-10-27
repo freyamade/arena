@@ -1,14 +1,10 @@
+from ._addons import PanelException
+from .ArenaPanel import ArenaPanel
 from tkinter import *
 
-class LogPanel(LabelFrame):
+class LogPanel(ArenaPanel):
 
-    def __init__(self, master, title, width, height):
-        super(LogPanel, self).__init__(master=master, text=title,
-            width=width, height=height)
-        self._initialiseVariables()
-        self._initialiseChildren()
-
-    def _initialiseVariables(self):
+    def _initialiseVariables(self, *args, **kwargs):
         self._log = StringVar()
         self._log.set("")
 

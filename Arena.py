@@ -40,8 +40,8 @@ class ArenaGUI(Tk):
         self.logMessage("Welcome to the Arena!")
 
     def _initialiseServerPanel(self):
-        self.logPanel = LogPanel(self, "Server Log", 400, 650)
-        self.logPanel.pack(side=LEFT, fill=BOTH, expand=1)
+        self._logPanel = LogPanel(self, "Server Log", 400, 650)
+        self._logPanel.pack(side=LEFT, fill=BOTH, expand=1)
 
     def _initialiseStatusPanel(self):
         statusPanel = LabelFrame(self, text="Service Statuses", width=350,
@@ -74,43 +74,10 @@ class ArenaGUI(Tk):
         runPanel.pack(fill=BOTH, expand=1)
 
     def _initialiseGameServerPanel(self, parent):
-        gameServerPanel = GameServerPanel(parent, title="Game Server",
-            width=300, height=150, logMethod=self.logMessage)
-        gameServerPanel.pack(expand=1, fill=BOTH)
-
-        # # Add two text entries and a checkbox and a button
-        # hostPanel = Frame(gameServerPanel)
-        # # Label for host address
-        # Label(hostPanel, text="Host Address").pack(side=LEFT, fill=X, expand=1)
-        # host = Entry(hostPanel)
-        # host.insert(0, self.host)
-        # host.config(state=DISABLED)
-        # host.pack(side=LEFT)
-        # hostPanel.pack(fill=BOTH, expand=1)
-
-        # portPanel = Frame(gameServerPanel)
-        # Label(portPanel, text="Port Number").pack(side=LEFT, fill=X, expand=1)
-        # self.port = IntVar()
-        # self.port.set(44444)
-        # port = Entry(portPanel, textvariable=self.port)
-        # port.pack(side=LEFT)
-        # portPanel.pack(fill=BOTH, expand=1)
-
-
-        # runPanel = Frame(gameServerPanel)
-        # self.gameStatus = StringVar()
-        # self.gameStatus.set("Server Stopped")
-        # self.gameStatusLabel = Label(runPanel,
-        #     textvariable=self.gameStatus, foreground="red")
-        # self.gameStatusLabel.pack(side=LEFT, fill=BOTH, expand=1)
-
-        # self.gameButtonLabel = StringVar()
-        # self.gameButtonLabel.set("Start")
-        # runButton = Button(runPanel, textvariable=self.gameButtonLabel,
-        #     command=self._runGameServer)
-        # runButton.pack(side=LEFT, fill=X, expand=1)
-
-        # runPanel.pack(fill=BOTH, expand=1)
+        self._gameServerPanel = GameServerPanel(parent, title="Game Server",
+            width=300, height=150, logMethod=self.logMessage,
+            runHandler=self._runGameServer)
+        self._gameServerPanel.pack(expand=1, fill=BOTH)
 
     def _initialiseLobbyPanel(self):
         lobbyPanel = LabelFrame(self, text="Lobby Status", width=350,
@@ -118,33 +85,11 @@ class ArenaGUI(Tk):
         lobbyPanel.pack(fill=BOTH, expand=1, side=TOP)
 
     def _runGameServer(self):
-        if not self.gameRunning:
-            # Set up arena server
-            port = self.port.get()
-            try:
-                self.gameServer = ArenaServer(self.host, port, self.logMessage)
-            except Exception as e:
-                self._popup('Error', str(e))
-            else:
-                self.gameThread = Thread(target=self.gameServer.listen)
-                self.gameStatus.set("Server Running")
-                self.gameButtonLabel.set("Stop")
-                self.gameStatusLabel.config(foreground="green")
-                self.gameRunning = True
-                self.gameThread.start()
-        else:
-            # TODO - Ensure server isn't in game before trying to close
-            if not self.gameServer.inGame():
-                self.gameStatus.set("Server Stopped")
-                self.gameButtonLabel.set("Start")
-                self.gameStatusLabel.config(foreground="red")
-                self.gameRunning = False
-                Thread(target=self.gameServer.close).start()
-                self.gameServer = None
-                self.gameThread = None
-            else:
-                self._popup('Cannot Close Server',
-                    'The game has begun, so the server cannot be closed')
+        # Wrapper for the game panel toggle method, to allow graceful exception
+        try:
+            self._gameServerPanel.toggle()
+        except PanelException as e:
+            self._popup(e.title, e.args)
 
     def _runBroadcastServer(self):
         # TODO - Add server logic here
@@ -163,9 +108,10 @@ class ArenaGUI(Tk):
         popup = Toplevel(self)
         popup.title(title)
 
-        Message(popup, text=message).pack()
+        Label(popup, text=message).pack(fill=BOTH, expand=1)
 
-        Button(popup, command=popup.destroy, text="Close").pack()
+        Button(popup, command=popup.destroy, text="Close").pack(fill=BOTH,
+            expand=1)
 
     # def _close(self):
     #     # Ensure all services are closed before closing
@@ -185,7 +131,7 @@ class ArenaGUI(Tk):
             self.messages.popleft()
             self.num_messages -= 1
 
-        self.logPanel.setLog('\n'.join(self.messages))
+        self._logPanel.setLog('\n'.join(self.messages))
 
 if __name__ == '__main__':
     a = ArenaGUI(None)

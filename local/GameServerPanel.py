@@ -1,16 +1,10 @@
 from ._addons import PanelException
-from .ArenaServer import ArenaServer
+from .ArenaPanel import ArenaPanel
 from socket import gethostname, gethostbyname
 from threading import Thread
 from tkinter import *
 
-class GameServerPanel(LabelFrame):
-
-    def __init__(self, master, title, width, height, *args, **kwargs):
-        super(GameServerPanel, self).__init__(master=master,
-            text=title, width=width, height=height)
-        self._initialiseVariables(*args, **kwargs)
-        self._initialiseChildren()
+class GameServerPanel(ArenaPanel):
 
     def _initialiseVariables(self, *args, **kwargs):
         self._host = gethostbyname(gethostname())
@@ -25,6 +19,12 @@ class GameServerPanel(LabelFrame):
         self._buttonLabel = StringVar()
         self._buttonLabel.set("Start")
 
+        self._broadcastStatus = StringVar()
+        self._broadcastStatus.set("Not Broadcasting")
+
+        self._broadcastButtonLabel = StringVar()
+        self._broadcastButtonLabel.set("Start Broadcasting")
+
         self._running = False
 
         self._server = None
@@ -32,6 +32,11 @@ class GameServerPanel(LabelFrame):
         self._thread = None
 
         self._logMethod = kwargs.get('logMethod', print)
+        # Have an external handler for the running of this Panel, to handle
+        # exceptions
+        self._runHandler = kwargs.get('runHandler', self.toggle)
+
+        self._broadcastHandler = kwargs.get('broadcastHandler', self.broadcast)
 
     def _initialiseChildren(self):
         # Host Panel - Label and a DISABLED Entry
@@ -56,11 +61,20 @@ class GameServerPanel(LabelFrame):
             foreground="red")
         self._statusLabel.pack(side=LEFT, fill=BOTH, expand=1)
         runButton = Button(runPanel, textvariable=self._buttonLabel,
-            command=self._toggle)
+            command=self._runHandler)
         runButton.pack(side=LEFT, fill=X, expand=1)
         runPanel.pack(fill=BOTH, expand=1)
 
-    def _toggle(self):
+        # Broadcast Panel - Second status panel for control over broadcasting
+        broadcastPanel = Frame(self)
+        self._broadcastStatusLabel = Label(broadcastPanel,
+            textvariable=self._broadcastStatus, foreground="red")
+        self._broadcastStatusLabel.pack(side=LEFT, fill=BOTH, expand=1)
+        broadcastButton = Button(broadcastPanel,
+            textvariable=self._broadcastButtonLabel,
+            command=self._broadcastHandler)
+
+    def toggle(self):
         if not self._running:
             # Run the server
             port_num = self._port.get()

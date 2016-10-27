@@ -3,5 +3,5 @@ class PanelException(Exception):
     result in the mainloop creating a popup"""
 
     def __init__(self, message, title):
-        super(PanelException, self).__init__(message=message)
+        super(PanelException, self).__init__(message)
         self.title = title
