@@ -31,6 +31,10 @@ class GameServerPanel(ArenaPanel):
 
         self._thread = None
 
+        self._broadcasting = False
+
+        self._broadcastThread = None
+
         self._logMethod = kwargs.get('logMethod', print)
         # Have an external handler for the running of this Panel, to handle
         # exceptions
@@ -73,6 +77,8 @@ class GameServerPanel(ArenaPanel):
         broadcastButton = Button(broadcastPanel,
             textvariable=self._broadcastButtonLabel,
             command=self._broadcastHandler)
+        broadcastButton.pack(side=LEFT, fill=BOTH, expand=1)
+        broadcastPanel.pack(fill=BOTH, expand=1)
 
     def toggle(self):
         if not self._running:
@@ -110,6 +116,35 @@ class GameServerPanel(ArenaPanel):
             else:
                 raise PanelException("Cannot Close Server",
                     "The game has started, so the server cannot be closed")
+
+    def broadcast(self):
+        # Handle broadcasting of the server
+        if not self._broadcasting:
+            if not self._server:
+                raise PanelException("Cannot Broadcast",
+                    "The server must first be running before it can broadcast")
+            elif self._server.inGame():
+                raise PanelException("Cannot Broadcast",
+                    "The game is running. There's no point in broadcasting")
+            else:
+                # We can broadcast
+                self._broadcastThread = Thread(target=self._server.broadcast)
+                self._broadcastThread.start()
+                # Update the labels
+                self._broadcastStatus.set("Broadcasting")
+                self._broadcastStatusLabel.config(foreground="green")
+                self._broadcastButtonLabel.set("Stop Broadcasting")
+                # Update the switch
+                self._broadcasting = True
+        else:
+            # Stop broadcasting
+            Thread(target=self._server.endBroadcast).start()
+            # Update the labels
+            self._broadcastStatus.set("Not Broadcasting")
+            self._broadcastButtonLabel.set("Start Broadcasting")
+            self._broadcastStatusLabel.config(foreground="red")
+            # Update the switch
+            self._broadcasting = False
 
     def canClose(self):
         return self._server == None or not self._server.inGame()

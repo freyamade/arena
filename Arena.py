@@ -92,17 +92,11 @@ class ArenaGUI(Tk):
             self._popup(e.title, e.args)
 
     def _runBroadcastServer(self):
-        # TODO - Add server logic here
-        if not self.broadcastRunning:
-            self.broadcastStatus.set("Server Running")
-            self.broadcastButtonLabel.set("Stop")
-            self.broadcastStatusLabel.config(foreground="green")
-            self.broadcastRunning = True
-        else:
-            self.broadcastStatus.set("Server Stopped")
-            self.broadcastButtonLabel.set("Start")
-            self.broadcastStatusLabel.config(foreground="red")
-            self.broadcastRunning = False
+        # Wrapper for the game panel broadcast method for exception handling
+        try:
+            self._gameServerPanel.broadcast()
+        except PanelException as e:
+            self._popup(e.title, e.args)
 
     def _popup(self, title, message):
         popup = Toplevel(self)
