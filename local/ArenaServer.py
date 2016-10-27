@@ -315,7 +315,7 @@ class ArenaServer:
                     username_count += 1
             if username_count > 0:
                 username += ' (%i)' % (username_count)
-            self.log(username, 'has joined the lobby!')
+            self.log(username +  ' has joined the lobby!')
             # Get the player coords
             player_coords_index = choice(range(len(self.coords)))
             player_coords = self.coords[player_coords_index]
@@ -462,7 +462,7 @@ class ArenaServer:
             elif repeat:
                 self._handleGameConnection(client, address, False)
         except timeout:
-            self.log('Timeout during', msg)
+            self.log('Timeout during ' + msg)
         finally:
             client.close()
             # Update after the client is closed to keep speed
@@ -530,7 +530,7 @@ class ArenaServer:
         try:
             data = loads(unquote(msg.split('update=')[1]))
         except ValueError:
-            self.log('JSON error loading', unquote(msg.split('update=')[1]))
+            self.log('JSON error loading ' +  unquote(msg.split('update=')[1]))
         else:
             player = data['player']
             damages = data['damages']

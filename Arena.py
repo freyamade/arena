@@ -5,11 +5,12 @@ from socket import gethostname, gethostbyname
 from threading import Thread
 from tkinter import *
 
-# TODO - Maybe break every panel into its own class
 # TODO - Override the X button and ensure every service is closed
 # TODO - Save all messages into a log file once the gui closes
 #   File opens during init, writes out every time log message is called
 #   and closes during the override of the X button or on a KeyboardInterrupt in console
+# TODO - Display that server has closed when the game is over
+# TODO - Display that the broadcast service has stopped when the game starts
 
 class ArenaGUI(Tk):
 
