@@ -30,11 +30,7 @@ class GameServerPanel(ArenaPanel):
 
         self._server = None
 
-        self._thread = None
-
         self._broadcasting = False
-
-        self._broadcastThread = None
 
         self._logMethod = kwargs.get('logMethod', print)
         # Have an external handler for the running of this Panel, to handle
@@ -93,8 +89,7 @@ class GameServerPanel(ArenaPanel):
             else:
                 # No exceptions
                 # Create the thread
-                self._thread = Thread(target=self._server.listen)
-                self._thread.start()
+                Thread(target=self._server.listen).start()
                 # Update the labels
                 self._status.set("Server Running")
                 self._buttonLabel.set("Stop")
@@ -132,8 +127,7 @@ class GameServerPanel(ArenaPanel):
                     "The game is running. There's no point in broadcasting")
             else:
                 # We can broadcast
-                self._broadcastThread = Thread(target=self._server.broadcast)
-                self._broadcastThread.start()
+                Thread(target=self._server.broadcast).start()
                 # Update the labels
                 self._broadcastStatus.set("Broadcasting")
                 self._broadcastStatusLabel.config(foreground="green")

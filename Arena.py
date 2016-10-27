@@ -23,20 +23,17 @@ class ArenaGUI(Tk):
         # self.protocol("WM_DELETE_WINDOW", self._close)
 
         # Set up server vars
+        # Push this stuff into the appropriate classes
         self.host = gethostbyname(gethostname())
         self.messages = deque()
         self.num_messages = 0
-        self.max_messages = 44 # Trust me
+        self.max_messages = 42
 
         self._initialiseServerPanel()
         self._initialiseStatusPanel()
-        self._initialiseLobbyPanel()
 
         self.gameRunning = False
         self.broadcastRunning = False
-
-        self.gameServer = None
-        self.gameThread = None
 
         self.logMessage("Welcome to the Arena!")
 
@@ -53,15 +50,10 @@ class ArenaGUI(Tk):
 
     def _initialiseGameServerPanel(self, parent):
         self._gameServerPanel = GameServerPanel(parent, title="Game Server",
-            width=300, height=150, logMethod=self.logMessage,
+            width=300, height=650, logMethod=self.logMessage,
             runHandler=self._runGameServer,
             broadcastHandler=self._runBroadcastServer)
         self._gameServerPanel.pack(expand=1, fill=BOTH)
-
-    def _initialiseLobbyPanel(self):
-        lobbyPanel = LabelFrame(self, text="Lobby Status", width=350,
-            height=250)
-        lobbyPanel.pack(fill=BOTH, expand=1, side=TOP)
 
     def _runGameServer(self):
         # Wrapper for the game panel toggle method, to allow graceful exception

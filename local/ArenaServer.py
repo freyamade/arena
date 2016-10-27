@@ -113,10 +113,6 @@ class ArenaServer:
         # True iff the server GUI called <close>
         self.closed = False
 
-        # obj: broadcastThread
-        # The Thread that will manage the <_handleBroadcast> method
-        self.broadcastThread = Thread(target=self._handleBroadcast)
-
         # boolean: closing
         # True when the <close> method is called.
         # Used to get the <broadcastThread> to finish
@@ -193,7 +189,7 @@ class ArenaServer:
     */"""
     def broadcast(self):
         self.closing = False
-        self.broadcastThread.start()
+        Thread(target=self._handleBroadcast).start()
 
     """/*
         Function: endBroadcast
