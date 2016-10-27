@@ -224,7 +224,7 @@ class ArenaServer:
         broadcastSock.bind(('', 44445))
         # Only wait 1 second before giving up and re-running the loop
         broadcastSock.settimeout(1)
-        print('Starting up broadcast service')
+        self.log('Starting up broadcast service')
         # Only run this thread while the game hasn't started
         while not self.closing and not self.started:
             try:
@@ -243,7 +243,7 @@ class ArenaServer:
                     broadcastSock.sendto(dumps(serverState).encode(), address)
             except timeout:
                 pass
-        print('Broadcast service closing')
+        self.log('Broadcast service closing')
 
     """/*
         Function: _handleLobbyConnection

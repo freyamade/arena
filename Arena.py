@@ -48,35 +48,13 @@ class ArenaGUI(Tk):
             height=400)
         statusPanel.pack(fill=BOTH, expand=1, side=TOP)
 
-        # Add 2 panels, one for the game server, the other for the broadcast
         self._initialiseGameServerPanel(statusPanel)
-        self._initialiseBroadcastPanel(statusPanel)
-
-    def _initialiseBroadcastPanel(self, parent):
-        broadcastPanel = LabelFrame(parent, text="Broadcast Server",
-            width=300, height=100)
-        broadcastPanel.pack(expand=1, fill=BOTH)
-
-        # Add label and button
-        runPanel = Frame(broadcastPanel)
-        self.broadcastStatus = StringVar()
-        self.broadcastStatus.set("Server Stopped")
-        self.broadcastStatusLabel = Label(runPanel,
-            textvariable=self.broadcastStatus, foreground="red")
-        self.broadcastStatusLabel.pack(side=LEFT, fill=BOTH, expand=1)
-
-        self.broadcastButtonLabel = StringVar()
-        self.broadcastButtonLabel.set("Start")
-        runButton = Button(runPanel, textvariable=self.broadcastButtonLabel,
-            command=self._runBroadcastServer)
-        runButton.pack(side=LEFT, fill=X, expand=1)
-
-        runPanel.pack(fill=BOTH, expand=1)
 
     def _initialiseGameServerPanel(self, parent):
         self._gameServerPanel = GameServerPanel(parent, title="Game Server",
             width=300, height=150, logMethod=self.logMessage,
-            runHandler=self._runGameServer)
+            runHandler=self._runGameServer,
+            broadcastHandler=self._runBroadcastServer)
         self._gameServerPanel.pack(expand=1, fill=BOTH)
 
     def _initialiseLobbyPanel(self):

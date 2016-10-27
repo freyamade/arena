@@ -1,5 +1,6 @@
 from ._addons import PanelException
 from .ArenaPanel import ArenaPanel
+from .ArenaServer import ArenaServer
 from socket import gethostname, gethostbyname
 from threading import Thread
 from tkinter import *
@@ -103,6 +104,9 @@ class GameServerPanel(ArenaPanel):
         else:
             # Try and close the server
             if self.canClose():
+                # If the broadcast server is running, update the GUI
+                if self._broadcasting:
+                    self.broadcast()
                 # Close the server
                 Thread(target=self._server.close).start()
                 self._server = None
