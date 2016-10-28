@@ -80,7 +80,7 @@ class GameServerPanel(ArenaPanel):
             port_num = self._port.get()
             try:
                 self._server = ArenaServer(self._host, port_num,
-                    self._logMessage)
+                    self._logMessage, self._serviceClose)
             except Exception as e:
                 self._popup("Error", str(e))
             else:
@@ -155,3 +155,10 @@ class GameServerPanel(ArenaPanel):
             return True
         else:
             return False
+
+    def _serviceClose(self, service):
+        # Handles when the server closes a service to change the display
+        if service == 'broadcast' and self._broadcasting:
+            self._broadcast()
+        elif service == 'game' and self._running:
+            self._toggle()

@@ -26,7 +26,7 @@ class ArenaServer:
             string host - The host ip of the server.
             int port - The port number of the server. Default is 44444
     */"""
-    def __init__(self, host, port, log):
+    def __init__(self, host, port, log, callback):
         # Group: Variables
 
         # string: host
@@ -118,6 +118,10 @@ class ArenaServer:
         # Used to get the <broadcastThread> to finish
         self.closing = False
 
+        # obj: callback
+        # Callback method to be run when a service closes down
+        self.callback = callback
+
     # Group: Public Methods
 
     """/*
@@ -182,6 +186,8 @@ class ArenaServer:
                 self._generateStatsFile(datetime.now())
         except Exception as e:
             self.log(str(e))
+        finally:
+            self.callback("game")
 
     """/*
         Function: broadcast
@@ -189,7 +195,9 @@ class ArenaServer:
     */"""
     def broadcast(self):
         self.closing = False
-        Thread(target=self._handleBroadcast).start()
+        thread = Thread(target=self._handleBroadcast)
+        thread.daemon = True
+        thread.start()
 
     """/*
         Function: endBroadcast
@@ -240,6 +248,7 @@ class ArenaServer:
             except timeout:
                 pass
         self.log('Broadcast service closing')
+        self.callback("broadcast")
 
     """/*
         Function: _handleLobbyConnection
