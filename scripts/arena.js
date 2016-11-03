@@ -1,7 +1,7 @@
 /*
 Script: Arena
 JavaScript client code that runs in browser. Handles drawing of objects and, using AJAX,
-handles updating data by sending and receiving from the <Server>
+handles updating data by sending and receiving from the <ArenaServer>
 */
 (function(){
     //Section: Global Variables
@@ -1092,7 +1092,6 @@ handles updating data by sending and receiving from the <Server>
             },
             ifModified : 'true',
             success: function(json){
-                // TODO - Update the players list
                 json.players.forEach(function(player){
                     var index = player.id;
                     if(index !== local){

@@ -9,7 +9,7 @@ from threading import Thread
 from urllib.request import unquote
 
 """/*
-    Class: Server
+    Class: ArenaServer
     A custom server written in Python3.4 for use as the backend for this game.
     Uses a simple protocol when receiving messages from the players.
     Multithreaded for increased speed, especially during the actual game.
