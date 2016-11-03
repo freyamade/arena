@@ -144,7 +144,7 @@ class ArenaServer:
             boolean started - True if the host has started this game
     */"""
     def inGame(self):
-        return self.started
+        return self.started and not self.gameOver
 
     """/*
         Function: listen
@@ -238,7 +238,6 @@ class ArenaServer:
                 # TODO - Add password data once we finish #9
                 # Only send response if data matches protocol, JIC
                 if data == 'arena_broadcast_req':
-                    print('Received arena broadcast req')
                     data = {'players': self.players}
                     serverState = {
                         'address': (self.host, self.port),
