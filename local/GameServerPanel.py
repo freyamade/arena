@@ -4,33 +4,63 @@ from socket import gethostname, gethostbyname
 from threading import Thread
 from tkinter import *
 
+"""/*
+    Class: GameServerPanel
+    <Panel> for managing the backend server graphically
+
+    See Also:
+        <ArenaPanel>
+*/"""
 class GameServerPanel(ArenaPanel):
 
     def _initialiseVariables(self, *args, **kwargs):
+        # Group: Variables
+
+        # string: _host
+        # The host address for the server
         self._host = gethostbyname(gethostname())
 
         default_port = 44444
+        # obj: _port
+        # <IntVar> object for managing the port number passed by the user
         self._port = IntVar()
         self._port.set(default_port)
 
+        # obj: _status
+        # <StringVar> object for managing the status label text
         self._status = StringVar()
         self._status.set("Server Stopped")
 
+        # obj: _buttonLabel
+        # <StringVar> object for managing the game server button text
         self._buttonLabel = StringVar()
         self._buttonLabel.set("Start")
 
+        # obj: _broadcastStatus
+        # <StringVar> object for managing the broadcast service status text
         self._broadcastStatus = StringVar()
         self._broadcastStatus.set("Not Broadcasting")
 
+        # obj: _broadcastButtonLabel
+        # <StringVar> object for managing the broadcast button text
         self._broadcastButtonLabel = StringVar()
         self._broadcastButtonLabel.set("Start Broadcasting")
 
+        # bool: _running
+        # Flag for whether or not the server is already running
         self._running = False
 
+        # obj: _server
+        # The currently running <ArenaServer> instance
         self._server = None
 
+        # bool: _broadcasting
+        # Flag for whether or not the server is broadcasting
         self._broadcasting = False
 
+        # obj: _logMessage
+        # A function to be passed into the server to allow for logging into the
+        # <LogPanel>
         self._logMessage = kwargs['logMessage']
 
     def _initialiseChildren(self):
@@ -74,6 +104,13 @@ class GameServerPanel(ArenaPanel):
         # Display a welcome message
         self._logMessage("Welcome to the Arena!")
 
+    # Group: Private Methods
+
+    """/*
+        Function: _toggle
+        Toggles the game server on or off.
+        Called when the server button is pressed.
+    */"""
     def _toggle(self):
         if not self._running:
             # Run the server
@@ -117,6 +154,11 @@ class GameServerPanel(ArenaPanel):
                 self._popup("Cannot Close Server",
                     "The game has started, so the server cannot be closed")
 
+    """/*
+        Function: _broadcast
+        Toggles the broadcast system of the currently running server on or off.
+        Called when the broadcast button is pressed
+    */"""
     def _broadcast(self):
         # Handle broadcasting of the server
         if not self._broadcasting:
@@ -145,8 +187,24 @@ class GameServerPanel(ArenaPanel):
             # Update the switch
             self._broadcasting = False
 
+    """/*
+        Function: _canClose
+        Reports whether this panel can close
+    */"""
     def _canClose(self):
         return self._server == None or not self._server.inGame()
+
+    """/*
+        Function: _serviceClose
+        Handler for when the server itself closes one of its services.
+        This callback updates the appropriate display
+    */"""
+    def _serviceClose(self, service):
+        # Handles when the server closes a service to change the display
+        if service == 'broadcast' and self._broadcasting:
+            self._broadcast()
+        elif service == 'game' and self._running:
+            self._toggle()
 
     def close(self):
         if self._canClose():
@@ -155,10 +213,3 @@ class GameServerPanel(ArenaPanel):
             return True
         else:
             return False
-
-    def _serviceClose(self, service):
-        # Handles when the server closes a service to change the display
-        if service == 'broadcast' and self._broadcasting:
-            self._broadcast()
-        elif service == 'game' and self._running:
-            self._toggle()

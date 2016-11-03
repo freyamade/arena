@@ -2,15 +2,21 @@ from local import *
 from threading import Thread
 from tkinter import *
 
-# TODO - Override the X button and ensure every service is closed
-# TODO - Save all messages into a log file once the gui closes
-#   File opens during init, writes out every time log message is called
-#   and closes during the override of the X button or on a KeyboardInterrupt in console
-# TODO - Display that server has closed when the game is over
-# TODO - Display that the broadcast service has stopped when the game starts
-
+"""/*
+    Class: ArenaGUI
+    Top level GUI interface for managing the Arena's server
+*/"""
 class ArenaGUI(Tk):
 
+    # Group: Constructors
+
+    """/*
+        Constructor: __init__
+        Initialises the main window, and creates the children <Panel>s
+
+        Parameters:
+            obj master - The parent of this window
+    */"""
     def __init__(self, master):
         # Set up the master window
         super(ArenaGUI, self).__init__(master)
@@ -19,13 +25,38 @@ class ArenaGUI(Tk):
         self.minsize(width=750, height=650)
         self.protocol("WM_DELETE_WINDOW", self._close)
 
+        # Declare all variables here for doc purposes
+        # Remove these for release code
+
+        # Group: Variables
+
+        # obj: _logPanel
+        # <Panel> object maintaining any log messages produced by the server
+        self._logPanel = None
+
+        # obj: _gameServerPanel
+        # <Panel> object providing graphical control for running the game
+        # server
+        self._gameServerPanel = None
+
         self._initialiseLogPanel()
         self._initialiseStatusPanel()
 
+    # Group: Private Methods
+
+    """/*
+        Function: _initialiseLogPanel
+        Creates a <LogPanel> instance, and adds it to the main window
+    */"""
     def _initialiseLogPanel(self):
         self._logPanel = LogPanel(self, "Server Log", 400, 650)
         self._logPanel.pack(side=LEFT, fill=BOTH, expand=1)
 
+    """/*
+        Function: _initialiseStatusPanel
+        Creates the status panel, which contains the <GameServerPanel>, and
+        adds it to the main window
+    */"""
     def _initialiseStatusPanel(self):
         statusPanel = LabelFrame(self, text="Service Statuses", width=350,
             height=400)
@@ -36,7 +67,14 @@ class ArenaGUI(Tk):
             logMessage=self._logPanel.logMessage)
         self._gameServerPanel.pack(expand=1, fill=BOTH)
         
-
+    """/*
+        Function: _close
+        Called when the user clicks the X button.
+        Ensures all services are properly shutdown before
+        closing the main window.
+        If one of the <Panel> children cannot be closed, this method will
+        create a popup
+    */"""
     def _close(self):
         # Attempt to close every panel before closing the main window
         closing = True
@@ -51,6 +89,14 @@ class ArenaGUI(Tk):
             return
         self.destroy()
 
+    """/*
+        Function: _popup
+        Creates a popup window to display a message when the main window cannot
+        be closed
+
+        Parameters:
+            string panel - The name of the <Panel> that failed to close
+    */"""
     def _popup(self, panel):
         popup = Toplevel(self)
         popup.title('Panel failed to close')
