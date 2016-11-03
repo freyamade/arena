@@ -1,4 +1,5 @@
-# Welcome to the Arena
+![Arena Logo](logo.png)  
+# Welcome to the Arena!
 The Arena is a 4 player, free-for-all shooter game written in Javascript using the HTML5 canvas, with a custom built server written in Python at the backend. It's fast paced fun for your local network.
 
 ## Need help?
