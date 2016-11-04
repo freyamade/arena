@@ -62,7 +62,7 @@ print("""
                 modal
             */
             $(document).ready(function(){
-                $('button').click(request);
+                $('table button').click(request);
             });
             
             /*
@@ -72,10 +72,33 @@ print("""
                 correct file
             */
             function request(e){
-                var filename = e.target.dataset.id + '.ast';
+                var datestring = e.target.dataset.id;
+                var date = [
+                    datestring.substring(0, 2),   //day
+                    datestring.substring(2, 4),   //month
+                    datestring.substring(4, 8),   //year
+                    datestring.substring(8, 10),  //hour
+                    datestring.substring(10, 12), //minute
+                    datestring.substring(12, 14), //second
+                ]
+                var filename = datestring + '.ast';
                 //Send a request to load the filename
                 $.getJSON('../stats/' + filename, function(data){
-                    console.log(data);
+                    var time = data.gameLength;
+                    var players = data.players;
+                    $('.modal-title').html(date[0] + '/' + date[1] + '/' +
+                    date[2] + ' @ ' + date[3] + ':' + date[4] + ':' + date[5])
+                    $('#modal .alert').html('<strong>Game Time:</strong> '
+                        + time[0] + ' mins, ' + time[1] + ' secs.');
+                    //Clear the modal table
+                    $('#modal tbody').empty();
+                    players.forEach(function(player, index){
+                        $('#modal tbody').append('<tr style="color: '
+                        + player.colour + '"><td class="text-center">'
+                        + player.username + '</td><td class="text-center">'
+                        + (index + 1) + '</td></tr>');
+                    });
+                    $('#modal').modal();
                 });
             }
         </script>
@@ -89,6 +112,38 @@ print("""
                 <span class="glyphicon glyphicon-home"></span> 
                 Home
             </a>
+        </div>
+
+        <!--Modal-->
+        <div class="modal fade" role="dialog" id="modal">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">
+                            &times;
+                        </button>
+                        <h4 class="modal-title"></h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert alert-info">
+                        </div>
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th class="text-center">
+                                        User Name
+                                    </th>
+                                    <th class="text-center">
+                                        Position
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
     </body>
 </html>
