@@ -74,6 +74,9 @@ print("""
             function request(e){
                 var filename = e.target.dataset.id + '.ast';
                 //Send a request to load the filename
+                $.getJSON('../stats/' + filename, function(data){
+                    console.log(data);
+                });
             }
         </script>
     </head>
