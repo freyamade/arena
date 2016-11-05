@@ -1,42 +1,36 @@
 #!/usr/bin/env python3
 from cgitb import enable
 enable()
-from json import loads
+from datetime import datetime
+import os
 # Because the server runs in the same dir as this file, we don't need cookies
 
 """/*
     Script: Game Stats
-    Displays the stats of the previous game ran on this server
+    Displays the stats of all games saved on the server
 */"""
 
-# string: stats
-# Player stats data from the server, to be put into a HTML table
-stats = ''
-
-# string: gameLength
-# The time the game took overall
-gameLength = ''
-try:
-    statsfile = open('../stats/game_stats')
-    data = loads(statsfile.read())
-    statsfile.close()
-    stats = ('<table class="table table-striped table-hover table-bordered">'
-             '<thead><tr><th class="text-center">User Name</th>'
-             '<th class="text-center">Position</th></tr></thead><tbody>')
-    players = data['players']
-    for i in range(len(players)):
-        player = players[i]
-        stats += '<tr style="color: %s;"><td class="text-center">%s</td><td class="text-center">%i</td></tr>' % (
-            player['colour'], player['username'], i + 1)
-    stats += '</tbody></table>'
-
-    mins, secs = data['gameLength']
-    gameLength = ('<div class="alert alert-info">'
-                  '<strong>Game Time:</strong> %i mins, %i secs'
-                  '</div>')
-    gameLength = gameLength % (mins, secs)
-except IOError:
-    stats = '<h2>Stats not available</h2>'
+# string: files
+# HTML table containing the date for each game and a link to see the stats
+files = ''
+# File name will be %d%m%Y%H%M%S.ast
+# We should sort them so the latest game is at the top
+if os.path.exists('../stats'):
+    # Loop through the directory
+    filenames = sorted([filename.split('.ast')[0] for filename in os.listdir(
+        '../stats')], key=lambda date: datetime.now() - datetime.strptime(
+        date, '%d%m%Y%H%M%S'))
+    files = """<table class="table table-striped table-hover table-bordered">
+    <thead><tr><th class="text-center">Game Date</th><th></th></tr></thead>
+    <tbody>"""
+    for filename in filenames:
+        # Button uses AJAX to request the data from the file
+        files += """<tr><td class="text-center">%s</td><td class="text-center">
+        <button class="btn btn-primary btn-xs" data-id="%s">
+        <span class="glyphicon glyphicon-file"></span> View Stats
+        </button></td></tr>""" % (datetime.strptime(
+        filename, '%d%m%Y%H%M%S').strftime('%d/%m/%Y @ %H:%M:%S'), filename)
+    files += '</tbody></table>'
 
 print('Content-Type: text/html')
 print()
@@ -60,18 +54,51 @@ print("""
         <!-- Latest compiled and minified JavaScript -->
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
         <title>Arena - Stats</title>
+
+        <script src="../scripts/game_stats.js"></script>
     </head>
 
     <body>
         <div class="container">
             <h1 class="page-heading">Last Game Stats</h1>
             %s
-            %s
             <a class="btn btn-primary" href="../index.html">
                 <span class="glyphicon glyphicon-home"></span> 
                 Home
             </a>
         </div>
+
+        <!--Modal-->
+        <div class="modal fade" role="dialog" id="modal">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">
+                            &times;
+                        </button>
+                        <h4 class="modal-title"></h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert alert-info">
+                        </div>
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th class="text-center">
+                                        User Name
+                                    </th>
+                                    <th class="text-center">
+                                        Position
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
     </body>
 </html>
-""" % (gameLength, stats))
+""" % (files))
