@@ -22,6 +22,15 @@ Python's cgi.FieldStorage; used for reading form data
 Type: SimpleCookie
 Python's http.cookies.SimpleCookie; used for reading and writing cookies
 
+Type: StringVar
+Python's tkinter.StringVar, used to update text in labels or buttons
+
+Type: IntVar
+Python's tkinter.IntVar, used to update numeric text in entries
+
+Type: Panel
+A Panel is what we use as a child of the GUI window for storing other tkinter components
+
 Group: JS Data Types
 
 Type: KeyboardEvent

@@ -1,2 +1,4 @@
 stats/*
+logs/*
 *.pyc
+__pycache__

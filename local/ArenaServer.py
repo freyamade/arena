@@ -9,7 +9,7 @@ from threading import Thread
 from urllib.request import unquote
 
 """/*
-    Class: Server
+    Class: ArenaServer
     A custom server written in Python3.4 for use as the backend for this game.
     Uses a simple protocol when receiving messages from the players.
     Multithreaded for increased speed, especially during the actual game.
@@ -26,7 +26,7 @@ class ArenaServer:
             string host - The host ip of the server.
             int port - The port number of the server. Default is 44444
     */"""
-    def __init__(self, host, port):
+    def __init__(self, host, port, log, callback):
         # Group: Variables
 
         # string: host
@@ -94,15 +94,6 @@ class ArenaServer:
         # The time at which the game starts
         self.startTime = 0
 
-        # obj: broadcastThread
-        # The Thread that will manage the <_handleBroadcast> method
-        self.broadcastThread = Thread(target=self._handleBroadcast)
-
-        # boolean: closing
-        # True when the <close> method is called.
-        # Used to get the <broadcastThread> to finish
-        self.closing = False
-
         """/*
             array: player_objects
             <List> of the <Player> objects created in Javascript for all
@@ -114,17 +105,46 @@ class ArenaServer:
         */"""
         self.player_objects = []
 
+        # obj: log
+        # Callable passed from the GUI to handle message outputs
+        self.log = log
+
+        # boolean: closed
+        # True iff the server GUI called <close>
+        self.closed = False
+
+        # boolean: closing
+        # True when the <close> method is called.
+        # Used to get the <broadcastThread> to finish
+        self.closing = False
+
+        # obj: callback
+        # Callback method to be run when a service closes down
+        self.callback = callback
+
     # Group: Public Methods
 
     """/*
         Function: close
-        Closes the server and releases the socket
+        Closes the server and releases the socket.
+        Should only be able to be called while the server is in the lobby state
     */"""
     def close(self):
-        print('Server Closing')
+        self.log('Server Closing')
+        self.closed = True
         self.closing = True
-        self.broadcastThread.join()
+        self.started = True
         self.sock.close()
+
+    """/*
+        Function: inGame
+        Reports whether or not the game this server manages has started
+
+        Returns:
+            boolean started - True if the host has started this game
+    */"""
+    def inGame(self):
+        return self.started and not self.gameOver
 
     """/*
         Function: listen
@@ -132,39 +152,59 @@ class ArenaServer:
         in a new thread
     */"""
     def listen(self):
+        self.log('Server starting up at %s on port %s' %
+            (self.host, self.port))
         self.sock.listen(10)
-        print('Lobby Open')
+        self.log('Lobby Open')
         # Lobby loop
-        while not self.started:
-            connections, wlist, xlist = select([self.sock], [], [], 0.05)
+        try:
+            while not self.started:
+                connections, wlist, xlist = select([self.sock], [], [],
+                    0.05)
 
-            for connection in connections:
-                client, address = connection.accept()
-                client.settimeout(5)
-                Thread(
-                    target=self._handleLobbyConnection,
-                    args=(client, address)).start()
-        print('Game Starting')
-        self.startTime = datetime.now()
-        while not self.gameOver:
-            connections, wlist, xlist = select([self.sock], [], [], 0.05)
+                for connection in connections:
+                    client, address = connection.accept()
+                    client.settimeout(5)
+                    Thread(
+                        target=self._handleLobbyConnection,
+                        args=(client, address)).start()
+            if not self.closed:
+                self.log('Game Starting')
+                self.startTime = datetime.now()
+                while not self.gameOver:
+                    connections, wlist, xlist = select([self.sock], [], [],
+                        0.05)
 
-            for connection in connections:
-                client, address = connection.accept()
-                client.settimeout(10)
-                Thread(
-                    target=self._handleGameConnection,
-                    args=(client, address)).start()
-        # Build the stats file. Name of the file will just be constant, server
-        # remembers only the latest game for now
-        self._generateStatsFile(datetime.now())
+                    for connection in connections:
+                        client, address = connection.accept()
+                        client.settimeout(10)
+                        Thread(
+                            target=self._handleGameConnection,
+                            args=(client, address)).start()
+                # Build the stats file. Name of the file will just be constant,
+                # server remembers only the latest game for now
+                self._generateStatsFile(datetime.now())
+        except Exception as e:
+            self.log(str(e))
+        finally:
+            self.callback("game")
 
     """/*
         Function: broadcast
         Begins listening for broadcasts on a separate Thread
     */"""
     def broadcast(self):
-        self.broadcastThread.start()
+        self.closing = False
+        thread = Thread(target=self._handleBroadcast)
+        thread.daemon = True
+        thread.start()
+
+    """/*
+        Function: endBroadcast
+        Ends the current broadcast session
+    */"""
+    def endBroadcast(self):
+        self.closing = True
 
     """/*
         Group: Private Methods
@@ -188,7 +228,7 @@ class ArenaServer:
         broadcastSock.bind(('', 44445))
         # Only wait 1 second before giving up and re-running the loop
         broadcastSock.settimeout(1)
-        print('Starting up broadcast service')
+        self.log('Starting up broadcast service')
         # Only run this thread while the game hasn't started
         while not self.closing and not self.started:
             try:
@@ -198,7 +238,6 @@ class ArenaServer:
                 # TODO - Add password data once we finish #9
                 # Only send response if data matches protocol, JIC
                 if data == 'arena_broadcast_req':
-                    print('Received arena broadcast req')
                     data = {'players': self.players}
                     serverState = {
                         'address': (self.host, self.port),
@@ -207,7 +246,8 @@ class ArenaServer:
                     broadcastSock.sendto(dumps(serverState).encode(), address)
             except timeout:
                 pass
-        print('Broadcast service closing')
+        self.log('Broadcast service closing')
+        self.callback("broadcast")
 
     """/*
         Function: _handleLobbyConnection
@@ -240,7 +280,7 @@ class ArenaServer:
             if callback:
                 callback(client, address, msg)
         except timeout:
-            print('Timeout during', msg)
+            self.log('Timeout during', msg)
             # Check if the request was involving a player already in the lobby
             # if so, run the (playerLeft) method from Greg's issue
         finally:
@@ -279,7 +319,7 @@ class ArenaServer:
                     username_count += 1
             if username_count > 0:
                 username += ' (%i)' % (username_count)
-            print(username, 'has joined the lobby!')
+            self.log(username +  ' has joined the lobby!')
             # Get the player coords
             player_coords_index = choice(range(len(self.coords)))
             player_coords = self.coords[player_coords_index]
@@ -389,7 +429,7 @@ class ArenaServer:
         if player:
             username = player['userName']
             token = self.tokens[username]
-            print(username, token)
+            self.log(username, token)
             client.sendall(token.encode())
         else:
             client.sendall('rejoin'.encode())
@@ -411,7 +451,7 @@ class ArenaServer:
             message from the client
     */"""
     def _handleGameConnection(self, client, address, repeat=True):
-        msg = client.recv(8192).decode()
+        msg = client.recv(4096).decode()
         callback = None
         try:
             if 'start_up' in msg:
@@ -426,7 +466,7 @@ class ArenaServer:
             elif repeat:
                 self._handleGameConnection(client, address, False)
         except timeout:
-            print('Timeout during', msg)
+            self.log('Timeout during ' + msg)
         finally:
             client.close()
             # Update after the client is closed to keep speed
@@ -494,7 +534,7 @@ class ArenaServer:
         try:
             data = loads(unquote(msg.split('update=')[1]))
         except ValueError:
-            print('JSON error loading', unquote(msg.split('update=')[1]))
+            self.log('JSON error loading ' +  unquote(msg.split('update=')[1]))
         else:
             player = data['player']
             damages = data['damages']
@@ -602,7 +642,7 @@ class ArenaServer:
         minutes = seconds // 60
         seconds = seconds % 60
         gameLength = (minutes, seconds)
-        print('Generating statsfile')
+        self.log('Generating statsfile')
         # Check if the 'stats' folder exists
         if not os.path.exists('./stats'):
             os.makedirs('./stats')
@@ -611,26 +651,3 @@ class ArenaServer:
         data = {'players': stats, 'gameLength': gameLength}
         statsfile.write(dumps(data))
         statsfile.close()
-
-
-if __name__ == '__main__':
-    # Set values for localhost
-    hostname = gethostname()
-    hostip = gethostbyname(hostname)
-    port = 44444  # Do not change port if you want to make the server public
-    # (Password support coming soon)
-    server_address = (hostip, port)
-    print('SERVER ADDRESS DETAILS')
-    print('PASS THE FOLLOWING TO YOUR FRIENDS')
-    print('Address:', hostip)
-    print('Port:', port)
-    server = ArenaServer(hostip, port)
-    try:
-        server.broadcast()
-        server.listen()
-    except KeyboardInterrupt:
-        pass
-    except Exception as e:
-        print(e)
-    finally:
-        server.close()
