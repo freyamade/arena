@@ -4,7 +4,7 @@ from tkinter import *
     Class: ArenaPanel
     An abstract super class for <LogPanel> and <GameServerPanel>, providing
     an interface that must be implemented, along with the <_popup> method
-/*"""
+*/"""
 class ArenaPanel(LabelFrame):
     # Group: Constructors
 
