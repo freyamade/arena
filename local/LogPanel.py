@@ -52,6 +52,8 @@ class LogPanel(ArenaPanel):
         self._logfile.close()
         return True
 
+    # Group: Public Methods
+
     """/*
         Function: logMessage
         Take in a message and display it in the log.
