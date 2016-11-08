@@ -22,7 +22,8 @@
         /*
             Script: Index
             JavaScript used to join a game from the modal form on the home page.
-            Sends a POST request to <Join Game>
+            Sends a POST request to <Join Game>.
+            Also handles the display of progress towards the release.
         */
 
         // obj: join_status
@@ -47,17 +48,16 @@
                     port: $('#port').val()
                 }
                 console.log(data);
-                $.post('cgi-bin/join_game.py', data);
+                $.post('cgi-bin/join_game.py', data, function(){
+                    window.location = 'cgi-bin/lobby.py';
+                });
                 message('Loading', 'info');
                 e.preventDefault();
             });
-        }
 
-        $(document).ajaxSuccess(function(e, xhr){
-            //Redirect to lobby.py
-            //Might have to fix things to make cookies work
-            window.location = 'cgi-bin/lobby.py';
-        });
+            //Handle getting the progress
+            $.getJSON('https://api.github.com/repos/CompSci2k18/Arena/milestones/1', milestoneProgress);
+        }
 
         $(document).ajaxError(function(e, xhr){
             message('Error - ' + xhr.responseText, 'danger');
@@ -76,17 +76,44 @@
             join_status.addClass('label label-' + level);
             join_status.html(msg);
         }
+
+        /*
+            Function: milestoneProgress
+            Populate the progress bar with our progress towards completing our current milestone
+
+            Parameters:
+                obj data - Object containing the data returned from the request
+        */
+        function milestoneProgress(data){
+            var percent = data.closed_issues / (data.open_issues + data.closed_issues) * 100; 
+            $('.progress-bar').prop('aria-valuenow', percent);
+            $('.progress-bar').prop('style', 'width: ' + percent + '%');
+            $('#progress_text').html(percent);
+        }
+
     </script>
     <link rel='icon' href='favicon.ico' type='image/x-icon' />
 </head>
 <body>
     <div class="container">
-        <!-- <h1 class="page-heading">Welcome to the Arena <small>v1 Beta Devel</small></h1> -->
-        <h1 class="page-header">
+        <div class="page-header">
             <img src="logo.png" class="img-thumbnail img-responsive" />
-        </h1>
+            <h1 class="page-heading">Welcome to the Arena</h1>
+        </div>
+        <h1 class="page-heading"><small>v1 Beta Progress</small></h1>
+        <div class="progress">
+          <div class="progress-bar progress-bar-success" role="progressbar" aria-valuemin="0" aria-valuemax="100">
+            <span id="progress_text"></span>%
+          </div>
+        </div>
         <hr />
-        <div class="btn-group">
+        <div class="btn-group hidden-xs">
+            <button class="btn btn-primary" data-toggle="modal" data-target="#howto"><span class="glyphicon glyphicon-question-sign"></span> How to Play</button>
+            <button class="btn btn-primary" data-toggle="modal" data-target="#join_game"><span class="glyphicon glyphicon-share-alt"></span> Join By IP</button>
+            <a class="btn btn-primary" href="cgi-bin/list_games.py"><span class="glyphicon glyphicon-list-alt"></span> List Public Servers</a>
+            <a class="btn btn-primary" href="cgi-bin/game_stats.py"><span class="glyphicon glyphicon-stats"></span> Game Stats</a>
+        </div>
+        <div class="btn-group-vertical visible-xs">
             <button class="btn btn-primary" data-toggle="modal" data-target="#howto"><span class="glyphicon glyphicon-question-sign"></span> How to Play</button>
             <button class="btn btn-primary" data-toggle="modal" data-target="#join_game"><span class="glyphicon glyphicon-share-alt"></span> Join By IP</button>
             <a class="btn btn-primary" href="cgi-bin/list_games.py"><span class="glyphicon glyphicon-list-alt"></span> List Public Servers</a>
@@ -165,6 +192,6 @@
     </div>
 
     <footer class="container footer">
-        <p>All icons from <a href="http://glyphicons.com/">Glyphicons</a></p>
+        <p class="text-muted">All icons from <a href="http://glyphicons.com/">Glyphicons</a></p>
     </footer>
 </body>
