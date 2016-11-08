@@ -52,6 +52,8 @@ def newGame():
             data = response.split('=')[1].split(';')
             cookie['player_num'] = data[0]
             cookie['game_token'] = data[1]
+        elif 'incorrect' in response:
+            error = 'Incorrect password for server'
         else:
             error = 'Lobby Full'
         sock.close()
@@ -72,6 +74,7 @@ if len(data) > 0:
     username = escape(data.getfirst('username', 'Guest'))
     ip_address = escape(data.getfirst('ip_address', ''))
     port = escape(data.getfirst('port', port))
+    password = escape(data.getfirst('password', 'None'))
 
     cookie = SimpleCookie()
     try:
@@ -92,7 +95,8 @@ if len(data) > 0:
             sock = socket(AF_INET, SOCK_STREAM)
             try:
                 sock.connect((ip_address, int(port)))
-                msg = 'token=' + cookie.get('player_num').value
+                msg = ('token=' + cookie.get('player_num').value + ';' +
+                    password)
                 sock.sendall(msg.encode())
                 # Receive the token and compare it with cookie token
                 response = sock.recv(4096).decode()
