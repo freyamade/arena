@@ -649,8 +649,8 @@ class ArenaServer:
 
     """/*
         Function: _generateStatsFile
-        Generates a shelf file named 'stats', which stores the stats from the
-        previous games
+        Generates a JSON .ast file, which stores the stats from the
+        previous game
 
         Parameters:
             time endTime - The time at which the game ended
@@ -679,7 +679,8 @@ class ArenaServer:
         # Check if the 'stats' folder exists
         if not os.path.exists('./stats'):
             os.makedirs('./stats')
-        statsfile = open('./stats/game_stats', 'w')
+        filename = './stats/' + datetime.now().strftime('%d%m%Y%H%M%S') +'.ast'
+        statsfile = open(filename, 'w')
         # Write out the data in JSON format
         data = {'players': stats, 'gameLength': gameLength}
         statsfile.write(dumps(data))
