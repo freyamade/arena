@@ -12,7 +12,7 @@ import os
 
 # string: files
 # HTML table containing the date for each game and a link to see the stats
-files = ''
+files = '<div class="alert alert-info">There are no stats yet</div>'
 # File name will be %d%m%Y%H%M%S.ast
 # We should sort them so the latest game is at the top
 if os.path.exists('../stats'):
@@ -20,17 +20,21 @@ if os.path.exists('../stats'):
     filenames = sorted([filename.split('.ast')[0] for filename in os.listdir(
         '../stats')], key=lambda date: datetime.now() - datetime.strptime(
         date, '%d%m%Y%H%M%S'))
-    files = """<table class="table table-striped table-hover table-bordered">
-    <thead><tr><th class="text-center">Game Date</th><th></th></tr></thead>
-    <tbody>"""
-    for filename in filenames:
-        # Button uses AJAX to request the data from the file
-        files += """<tr><td class="text-center">%s</td><td class="text-center">
-        <button class="btn btn-primary btn-xs" data-id="%s">
-        <span class="glyphicon glyphicon-file"></span> View Stats
-        </button></td></tr>""" % (datetime.strptime(
-        filename, '%d%m%Y%H%M%S').strftime('%d/%m/%Y @ %H:%M:%S'), filename)
-    files += '</tbody></table>'
+    if len(filenames) > 0:
+        files = """
+        <table class="table table-striped table-hover table-bordered">
+        <thead><tr><th class="text-center">Game Date</th><th></th></tr></thead>
+        <tbody>"""
+        for filename in filenames:
+            # Button uses AJAX to request the data from the file
+            files += """<tr><td class="text-center">%s</td>
+            <td class="text-center">
+            <button class="btn btn-primary btn-xs" data-id="%s">
+            <span class="glyphicon glyphicon-file"></span> View Stats
+            </button></td></tr>""" % (datetime.strptime(
+            filename, '%d%m%Y%H%M%S').strftime('%d/%m/%Y @ %H:%M:%S'),
+            filename)
+        files += '</tbody></table>'
 
 print('Content-Type: text/html')
 print()

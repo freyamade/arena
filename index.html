@@ -42,12 +42,22 @@
                 if(username === ''){
                     username = 'Guest';
                 }
+                var password = $('#password');
+                    if(password.length === 0){
+                        password = 'None';
+                    }
+                    else{
+                        password = password.val();
+                        if(password === ''){
+                            password = 'None';
+                        }
+                    }
                 var data = {
                     username: username,
                     ip_address: $('#ip').val(),
-                    port: $('#port').val()
+                    port: $('#port').val(),
+                    password: password
                 }
-                console.log(data);
                 $.post('cgi-bin/join_game.py', data, function(){
                     window.location = 'cgi-bin/lobby.py';
                 });
@@ -106,6 +116,7 @@
             <span id="progress_text"></span>%
           </div>
         </div>
+        <a href="https://github.com/CompSci2k18/Arena/milestone/1" target="_blank" class="btn btn-info"><img src="gh.png" alt="GitHub logo" width="20" height="20" /> Milestone on GitHub</a>
         <hr />
         <div class="btn-group hidden-xs">
             <button class="btn btn-primary" data-toggle="modal" data-target="#howto"><span class="glyphicon glyphicon-question-sign"></span> How to Play</button>
@@ -163,6 +174,10 @@
                         <div class="form-group">
                             <label for="port">Port Number</label>
                             <input id="port" type="text" name="port" value="44444" required class="form-control" />
+                        </div>
+                        <div class="form-group">
+                            <label for="password">Password (optional)</label>
+                            <input id="password" type="text" name="password" value="" class="form-control" />
                         </div>
                         <button type="button" class="btn btn-danger" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span> Cancel</button>
                         <button type="submit" class="btn btn-primary pull-right"><span class="glyphicon glyphicon-share-alt"></span> Join Game</button>

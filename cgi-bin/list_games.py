@@ -31,15 +31,14 @@ timeouts = 3
 
 # string: form_template
 # A template for the form that will be used to join the game
-# Will bootstrap after this file works TODO
 form_template = """
 <form action="join_game.py" method="POST">
     <div class="input-group">
         <span class="input-group-addon">
             Username
         </span>
-        <input type="text" id="username" name="username" placeholder="Guest"
-        value="" class="form-control" />
+        <input type="text" name="username" placeholder="Guest"
+        value="" class="form-control username" />
         <span class="input-group-btn">
             <button class="btn btn-primary" type="submit">
                 <span class="glyphicon glyphicon-share-alt"></span>
@@ -48,8 +47,35 @@ form_template = """
         </span>
     </div>
 
-    <input type="hidden" id="ip" name="ip_address" value="%s" />
-    <input type="hidden" id="port" name="port" value="%s" />
+    <input type="hidden" class="ip" name="ip_address" value="%s" />
+    <input type="hidden" class="port" name="port" value="%s" />
+</form>"""
+
+# string: protected_form_template
+# An alternate version of <form_template> for use when passwords are needed
+protected_form_template = """
+<form action="join_game.py" method="POST">
+    <div class="input-group">
+        <span class="input-group-addon">
+            Username
+        </span>
+        <input type="text" name="username" placeholder="Guest"
+        value="" class="form-control username" />
+    </div>
+    <div class="input-group">
+        <span class="input-group-addon">
+            Password
+        </span>
+        <input type="text" name="password"
+        value="" class="form-control password" />
+    </div>
+    <button class="btn btn-primary" type="submit">
+        <span class="glyphicon glyphicon-share-alt"></span>
+         Join Game
+    </button>
+
+    <input type="hidden" class="ip" name="ip_address" value="%s" />
+    <input type="hidden" class="port" name="port" value="%s" />
 </form>"""
 
 # string: error
@@ -109,7 +135,9 @@ if len(servers) != 0:
             players += '</ol>'
         else:
             players = 'No Players in Lobby'
-        this_form = form_template % (addr[0], addr[1])
+        this_form = (form_template if not data['password'] else
+            protected_form_template)
+        this_form = this_form % (addr[0], addr[1])
         server_table += """<tr>
                                <td class="text-center">
                                    %s
@@ -159,16 +187,27 @@ print("""
             join_status = $('#join_status');
             join_status.on('hide.bs.modal', function(){modal_shown = false;});
                 $("form").submit(function(e){
-                    var username = $('#username').val();
+                    var target = $(e.target);
+                    var username = target.find('.username').val();
                     if(username === ''){
                         username = 'Guest';
                     }
+                    var password = target.find('.password');
+                    if(password.length === 0){
+                        password = 'None';
+                    }
+                    else{
+                        password = password.val();
+                        if(password === ''){
+                            password = 'None';
+                        }
+                    }
                     var data = {
                         username: username,
-                        ip_address: $('#ip').val(),
-                        port: $('#port').val()
+                        ip_address: target.find('.ip').val(),
+                        port: target.find('.port').val(),
+                        password: password
                     }
-                    console.log(data);
                     $.post('join_game.py', data);
                     e.preventDefault();
                 });
@@ -193,7 +232,7 @@ print("""
                 $('.modal-title').html(msg);
             }
         </script>
-        <link rel='icon' href='favicon.ico' type='image/x-icon' />
+        <link rel='icon' href='../favicon.ico' type='image/x-icon' />
     </head>
 
     <body>
@@ -203,6 +242,8 @@ print("""
             </h1>
             %s
             %s
+            <a href=".." class="btn btn-primary"><span
+            class="glyphicon glyphicon-home"></span> Home</a>
         </div>
 
         <div id="join_status" class="modal fade" role="dialog">

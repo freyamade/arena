@@ -78,14 +78,15 @@ class ArenaGUI(Tk):
     def _close(self):
         # Attempt to close every panel before closing the main window
         closing = True
+        # Close the log panel last
+        closing = closing and self._gameServerPanel.close()
+        if not closing:
+            self._popup('Game Server')
+            return
         closing = closing and self._logPanel.close()
         # Test if the previous panel closed
         if not closing:
             self._popup('Log')
-            return
-        closing = closing and self._gameServerPanel.close()
-        if not closing:
-            self._popup('Game Server')
             return
         self.destroy()
 

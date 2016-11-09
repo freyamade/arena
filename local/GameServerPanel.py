@@ -63,6 +63,10 @@ class GameServerPanel(ArenaPanel):
         # <LogPanel>
         self._logMessage = kwargs['logMessage']
 
+        # obj: _password
+        # <StringVar> object used for maintaining passwords input into the GUI
+        self._password = StringVar()
+
     def _initialiseChildren(self):
         # Host Panel - Label and a DISABLED Entry
         hostPanel = Frame(self)
@@ -79,6 +83,13 @@ class GameServerPanel(ArenaPanel):
         portEntry = Entry(portPanel, textvariable=self._port)
         portEntry.pack(side=LEFT, fill=X, expand=1)
         portPanel.pack(fill=BOTH, expand=1)
+
+        # Password Panel - Label and an ENABLED Entry
+        passwordPanel = Frame(self)
+        Label(passwordPanel, text="Password").pack(side=LEFT, fill=X, expand=1)
+        Entry(passwordPanel, textvariable=self._password).pack(side=LEFT,
+            fill=X, expand=1)
+        passwordPanel.pack(fill=BOTH, expand=1)
 
         # Status Panel - Label and a Button to run this server
         runPanel = Frame(self)
@@ -114,10 +125,13 @@ class GameServerPanel(ArenaPanel):
     def _toggle(self):
         if not self._running:
             # Run the server
-            port_num = self._port.get()
+            password = self._password.get()
+            if not password:
+                password = None
             try:
-                self._server = ArenaServer(self._host, port_num,
-                    self._logMessage, self._serviceClose)
+                self._server = ArenaServer(self._host, self._port.get(),
+                    self._logMessage, self._serviceClose,
+                    password)
             except Exception as e:
                 self._popup("Error", str(e))
             else:
@@ -137,7 +151,7 @@ class GameServerPanel(ArenaPanel):
             if self._canClose():
                 # If the broadcast server is running, update the GUI
                 if self._broadcasting:
-                    self.broadcast()
+                    self._broadcast()
                 # Close the server
                 thread = Thread(target=self._server.close)
                 thread.daemon = True

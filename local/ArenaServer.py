@@ -26,7 +26,7 @@ class ArenaServer:
             string host - The host ip of the server.
             int port - The port number of the server. Default is 44444
     */"""
-    def __init__(self, host, port, log, callback):
+    def __init__(self, host, port, log, callback, password=None):
         # Group: Variables
 
         # string: host
@@ -122,6 +122,13 @@ class ArenaServer:
         # Callback method to be run when a service closes down
         self.callback = callback
 
+        if password:
+            # string: password
+            # Password for the server
+            self.password = sha256(password.encode()).hexdigest()
+        else:
+            self.password = None
+
     # Group: Public Methods
 
     """/*
@@ -154,6 +161,7 @@ class ArenaServer:
     def listen(self):
         self.log('Server starting up at %s on port %s' %
             (self.host, self.port))
+        self.log('Password Protected: ' + str(self.password is not None))
         self.sock.listen(10)
         self.log('Lobby Open')
         # Lobby loop
@@ -235,10 +243,13 @@ class ArenaServer:
                 data, address = broadcastSock.recvfrom(1024)
                 data = data.decode()
                 # Send back server data
-                # TODO - Add password data once we finish #9
                 # Only send response if data matches protocol, JIC
                 if data == 'arena_broadcast_req':
-                    data = {'players': self.players}
+                    data = {
+                        'players': self.players,
+                        # Only need to say if there is a password or not
+                        'password': self.password is not None
+                    }
                     serverState = {
                         'address': (self.host, self.port),
                         'data': data
@@ -305,43 +316,49 @@ class ArenaServer:
     def _lobbyJoin(self, client, address, msg):
         # Handles players joining the lobby
         if self.lobby_size < 4 and not self.started:
-            username = msg.split('=')[1]
-            # Find the index for the player
-            player_index = -1
-            index_assigned = False
-            username_count = 0
-            for i in range(len(self.players)):
-                player = self.players[i]
-                if player is None and not index_assigned:
-                    player_index = i
-                    index_assigned = True
-                elif player is not None and player['userName'] == username:
-                    username_count += 1
-            if username_count > 0:
-                username += ' (%i)' % (username_count)
-            self.log(username +  ' has joined the lobby!')
-            # Get the player coords
-            player_coords_index = choice(range(len(self.coords)))
-            player_coords = self.coords[player_coords_index]
-            self.coords.remove(player_coords)
-            # Create the player lobby object
-            player = {
-                'x': player_coords[0],
-                'y': player_coords[1],
-                'userName': username,
-                'colour': '#%s' % (self._generateColour()),
-                'local': False,
-                'queryTimeout': 20,
-                'ready': False
-            }
-            self.lobby_size += 1
-            self.players[player_index] = player
-            # Generate the token
-            token = sha256(
-                str(datetime.now()).encode()).hexdigest()
-            self.tokens[username] = token
-            msg = 'joined=' + str(player_index) + ';' + token
-            client.sendall(msg.encode())
+            data = msg.split('=')[1]
+            username, password = data.split(';')
+            # Check the passwords against eachother
+            if ((password == 'None' and not self.password) or
+                    sha256(password.encode()).hexdigest() == self.password):
+                # Find the index for the player
+                player_index = -1
+                index_assigned = False
+                username_count = 0
+                for i in range(len(self.players)):
+                    player = self.players[i]
+                    if player is None and not index_assigned:
+                        player_index = i
+                        index_assigned = True
+                    elif player is not None and player['userName'] == username:
+                        username_count += 1
+                if username_count > 0:
+                    username += ' (%i)' % (username_count)
+                self.log(username +  ' has joined the lobby!')
+                # Get the player coords
+                player_coords_index = choice(range(len(self.coords)))
+                player_coords = self.coords[player_coords_index]
+                self.coords.remove(player_coords)
+                # Create the player lobby object
+                player = {
+                    'x': player_coords[0],
+                    'y': player_coords[1],
+                    'userName': username,
+                    'colour': '#%s' % (self._generateColour()),
+                    'local': False,
+                    'queryTimeout': 20,
+                    'ready': False
+                }
+                self.lobby_size += 1
+                self.players[player_index] = player
+                # Generate the token
+                token = sha256(
+                    str(datetime.now()).encode()).hexdigest()
+                self.tokens[username] = token
+                msg = 'joined=' + str(player_index) + ';' + token
+                client.sendall(msg.encode())
+            else:
+                client.sendall('incorrect'.encode())
         else:
             client.sendall('lobby full'.encode())
 
@@ -429,7 +446,6 @@ class ArenaServer:
         if player:
             username = player['userName']
             token = self.tokens[username]
-            self.log(username, token)
             client.sendall(token.encode())
         else:
             client.sendall('rejoin'.encode())
