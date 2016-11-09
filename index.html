@@ -1,21 +1,212 @@
 <!DOCTYPE html>
 <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
     <title>Welcome to the Arena!</title>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
+    <!--jQuery-->
+    <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s=" crossorigin="anonymous"></script>
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+    <!--Join Game AJAX-->
+    <script>
+        /*
+            Script: Index
+            JavaScript used to join a game from the modal form on the home page.
+            Sends a POST request to <Join Game>.
+            Also handles the display of progress towards the release.
+        */
+
+        // obj: join_status
+        // Pointer to the label element in the form to display any errors
+        var join_status;
+        $(document).ready(init);
+
+        /*
+            Function: init
+            Initialises variables, sets up event listeners
+        */
+        function init(){
+            join_status = $('#join_status');
+            $("#join_form").submit(function(e){
+                var username = $('#username').val();
+                if(username === ''){
+                    username = 'Guest';
+                }
+                var password = $('#password');
+                    if(password.length === 0){
+                        password = 'None';
+                    }
+                    else{
+                        password = password.val();
+                        if(password === ''){
+                            password = 'None';
+                        }
+                    }
+                var data = {
+                    username: username,
+                    ip_address: $('#ip').val(),
+                    port: $('#port').val(),
+                    password: password
+                }
+                $.post('cgi-bin/join_game.py', data, function(){
+                    window.location = 'cgi-bin/lobby.py';
+                });
+                message('Loading', 'info');
+                e.preventDefault();
+            });
+
+            //Handle getting the progress
+            $.getJSON('https://api.github.com/repos/CompSci2k18/Arena/milestones/1', milestoneProgress);
+        }
+
+        $(document).ajaxError(function(e, xhr){
+            message('Error - ' + xhr.responseText, 'danger');
+        });
+
+        /*
+            Function: message
+            Display a message in the modal depending on the state of the AJAX request
+
+            Parameters:
+                string msg - The message to be displayed
+                string level - The level (info, error) of the message
+        */
+        function message(msg, level){
+            join_status.removeClass();
+            join_status.addClass('label label-' + level);
+            join_status.html(msg);
+        }
+
+        /*
+            Function: milestoneProgress
+            Populate the progress bar with our progress towards completing our current milestone
+
+            Parameters:
+                obj data - Object containing the data returned from the request
+        */
+        function milestoneProgress(data){
+            var percent = data.closed_issues / (data.open_issues + data.closed_issues) * 100; 
+            $('.progress-bar').attr('aria-valuenow', percent);
+            $('.progress-bar').css( 'width', percent + '%');
+            $('#progress_text').html(percent);
+        }
+
+    </script>
+    <link rel='icon' href='favicon.ico' type='image/x-icon' />
 </head>
 <body>
-    <h1>Welcome to the Arena</h1>
-    <a href="cgi-bin/join_game.py">Join Game</a>
-    <h2>About</h2>
-    <p>
-        It's buggy as all hell, but at this stage I don't care. It works.
-        This was an experiment. To see if I could make a terrible online game,
-        and as you will see, I suceeded. I hope to work out the kinks as I go
-        but for all intents and purposes the game actually runs
-    </p>
-    <h3>NOTE - As of right now (6/10/16), this game is only compatible with Chrome</h3>
-    <p>Maybe in the future I'll make it cross platform, but right now I'm just happy it kinda works :)</p>
-    <!-- <a href="cgi-bin/create-game.py">Create Game</a>
-    <br /> -->
-    <!-- <a href="cgi-bin/list_games.py">List Open Games</a> -->
-    <p>Want to run your own server? Get the server code <a href="https://github.com/CompSci2k18/Arena">here</a></p>
+    <div class="container">
+        <div class="page-header">
+            <img src="logo.png" class="img-thumbnail img-responsive" />
+            <h1 class="page-heading">Welcome to the Arena</h1>
+        </div>
+        <h1 class="page-heading"><small>v1 Beta Progress</small></h1>
+        <div class="progress">
+          <div class="progress-bar progress-bar-success" role="progressbar" aria-valuemin="0" aria-valuemax="100">
+            <span id="progress_text"></span>%
+          </div>
+        </div>
+        <a href="https://github.com/CompSci2k18/Arena/milestone/1" target="_blank" class="btn btn-info"><img src="gh.png" alt="GitHub logo" width="20" height="20" /> Milestone on GitHub</a>
+        <hr />
+        <div class="btn-group hidden-xs">
+            <button class="btn btn-primary" data-toggle="modal" data-target="#howto"><span class="glyphicon glyphicon-question-sign"></span> How to Play</button>
+            <button class="btn btn-primary" data-toggle="modal" data-target="#join_game"><span class="glyphicon glyphicon-share-alt"></span> Join By IP</button>
+            <a class="btn btn-primary" href="cgi-bin/list_games.py"><span class="glyphicon glyphicon-list-alt"></span> List Public Servers</a>
+            <a class="btn btn-primary" href="cgi-bin/game_stats.py"><span class="glyphicon glyphicon-stats"></span> Game Stats</a>
+        </div>
+        <div class="btn-group-vertical visible-xs">
+            <button class="btn btn-primary" data-toggle="modal" data-target="#howto"><span class="glyphicon glyphicon-question-sign"></span> How to Play</button>
+            <button class="btn btn-primary" data-toggle="modal" data-target="#join_game"><span class="glyphicon glyphicon-share-alt"></span> Join By IP</button>
+            <a class="btn btn-primary" href="cgi-bin/list_games.py"><span class="glyphicon glyphicon-list-alt"></span> List Public Servers</a>
+            <a class="btn btn-primary" href="cgi-bin/game_stats.py"><span class="glyphicon glyphicon-stats"></span> Game Stats</a>
+        </div>
+        <hr />
+        <!--News can go here-->
+        <!--Maybe set this up as a php script to pull news from a db later?-->
+        <section id="news" class="panel panel-info">
+            <div class="panel-heading">
+                <h2>News</h2>
+            </div>
+            <div class="panel-body">
+                <article>
+                    <h3>Beta development <small>24/Oct/2016</small></h3>
+                    <p>Currently, this game is in the alpha state of version 1.0.
+                        We are working hard at fixing all the issues the game currently
+                        has in order to get a beta out to you. Thank you for your
+                        patience :)
+                    </p>
+                </article>
+            </div>
+        </section>
+    </div>
+
+    <!--Modals-->
+    <div id="join_game" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <!--Content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">
+                        Join Game
+                    </h4>
+                    <div id="join_status"></div>
+                </div>
+                <div class="modal-body">
+                    <form id="join_form" action="" method="POST">
+                        <div class="form-group">
+                            <label for="username">Username</label>
+                            <input type="text" id="username" name="username" placeholder="Guest" value="" class="form-control" />
+                        </div>
+                        <div class="form-group">
+                            <label for="ip">IP Address</label>
+                            <input id="ip" type="text" name="ip_address" required value="" class="form-control" />
+                        </div>
+                        <div class="form-group">
+                            <label for="port">Port Number</label>
+                            <input id="port" type="text" name="port" value="44444" required class="form-control" />
+                        </div>
+                        <div class="form-group">
+                            <label for="password">Password (optional)</label>
+                            <input id="password" type="text" name="password" value="" class="form-control" />
+                        </div>
+                        <button type="button" class="btn btn-danger" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span> Cancel</button>
+                        <button type="submit" class="btn btn-primary pull-right"><span class="glyphicon glyphicon-share-alt"></span> Join Game</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="howto" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <!--Content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button role="button" data-dismiss="modal" class="close">&times;</button>
+                    <h4 class="modal-title">
+                        How to Play
+                    </h4>
+                </div>
+                <div class="modal-body">
+                    <p>Use <kbd>W, A, S, D</kbd> or <kbd>&uarr;, &larr;, &rarr; &darr;</kbd> to move.</p>
+                    <p>Use the mouse to aim and click to fire</p>
+                    <p>Reduce all other players' health to 0 to win</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="container footer">
+        <p class="text-muted">All icons from <a href="http://glyphicons.com/">Glyphicons</a></p>
+    </footer>
 </body>

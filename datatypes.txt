@@ -22,6 +22,15 @@ Python's cgi.FieldStorage; used for reading form data
 Type: SimpleCookie
 Python's http.cookies.SimpleCookie; used for reading and writing cookies
 
+Type: StringVar
+Python's tkinter.StringVar, used to update text in labels or buttons
+
+Type: IntVar
+Python's tkinter.IntVar, used to update numeric text in entries
+
+Type: Panel
+A Panel is what we use as a child of the GUI window for storing other tkinter components
+
 Group: JS Data Types
 
 Type: KeyboardEvent
@@ -35,3 +44,6 @@ Intervals are used for JavaScript to schedule the running of functions periodica
 
 Type: jqXHR
 jQuery's wrapper of the native XMLHttpRequest with a superset API.
+
+Type: Damage
+{id : id of the <Player> that was hit, damage : amount of damage to be dealt, sent : has this Damage been sent to the server already}

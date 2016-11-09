@@ -8,7 +8,7 @@ from http.cookies import SimpleCookie
 
 """/*
     Script: Join Game
-    Webpage in Python to allow a user to join an active game server.
+    Handles join requests from the form on the index page.
     Servers can only be joined if they are not full and have not started.
 */"""
 
@@ -38,29 +38,43 @@ error = ''
     already connected to the server at the address
 */"""
 def newGame():
+    error = ''
     sock = socket(AF_INET, SOCK_STREAM)
     try:
-        sock.bind(('', 44445))
         sock.connect((ip_address, int(port)))
-        msg = 'join=' + username
+        msg = 'join=' + username + ';' + password
         sock.sendall(msg.encode())
         # Receive the join status
-        response = sock.recv(256).decode()
+        response = sock.recv(1024).decode()
         if 'joined' in response:
             cookie['game_address'] = ip_address + ':' + port
-            cookie['player_num'] = response.split('=')[1] #joined=num
+            #joined=num;token
+            data = response.split('=')[1].split(';')
+            cookie['player_num'] = data[0]
+            cookie['game_token'] = data[1]
+        elif 'incorrect' in response:
+            error = 'Incorrect password for server'
         else:
             error = 'Lobby Full'
         sock.close()
+    except OSError as e:
+        num = int(e.errno)
+        if num == 111:
+            error = ('Connection failed. '
+                     'Check that the server is open and the ip is correct.')
+        else:
+            error = str(e)
     except Exception as e:
-        # #12 will be fixed here
         error = str(e)
+    finally:
+        return error
 
 if len(data) > 0:
     # Check the passed address for connection
     username = escape(data.getfirst('username', 'Guest'))
-    ip_address = escape(data.getfirst('address', ''))
+    ip_address = escape(data.getfirst('ip_address', ''))
     port = escape(data.getfirst('port', port))
+    password = escape(data.getfirst('password', 'None'))
 
     cookie = SimpleCookie()
     try:
@@ -68,40 +82,37 @@ if len(data) > 0:
         cookie.load(environ['HTTP_COOKIE'])
     except KeyError:
         # No cookie, run the new game function
-        newGame()
+        error += newGame()
     else:
         # Cookie exists, check if the address in the form is equal to the
         # address in the cookie
         cookie_address = cookie.get('game_address').value
         if cookie_address != (ip_address + ':' + port):
             # The player has connected to a new game
-            newGame()
-        # Else, they've already joined this game
+            error += newGame()
+        # Else, check if they are already in this game
+        else:
+            sock = socket(AF_INET, SOCK_STREAM)
+            try:
+                sock.connect((ip_address, int(port)))
+                msg = 'token=' + cookie.get('player_num').value
+                sock.sendall(msg.encode())
+                # Receive the token and compare it with cookie token
+                response = sock.recv(4096).decode()
+                sock.close()
+                cookie_token = cookie.get('game_token').value
+                if 'rejoin' in response or response != cookie_token:
+                    # This player has to be join the game
+                    error += newGame()
+            except:
+                error += newGame()
     finally:
-        print(cookie)
-        print('Status: 303')
-        print('Location: lobby.py')
-
-form = """
-<form action="" method="POST">
-Username: <input type="text" name="username" placeholder="Guest" value="%s"/><br />
-IP Address: <input type="text" name="address" required value="%s" /><br />
-Port Number: <input type="text" name="port" value="44444" required  value="%s" /><br />
-<input type="submit" />
-</form>""" %(username, ip_address, port)
-
-print('Content-Type: text/html')
-print()
-print("""
-<!DOCTYPE html>
-<html>
-    <head>
-        <title>Arena - Join Game</title>
-    </head>
-
-    <body>
-        <h1>Join A Game</h1>
-        %s
-        <h3>%s</h3>
-    </body>
-</html>""" % (form, error))
+        print('Content-Type: text/html')
+        if error == '':
+            print('Status: 200')
+            print(cookie)
+            print()
+        else:
+            print('Status: 400')
+            print()
+            print(error)

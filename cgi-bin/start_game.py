@@ -28,7 +28,6 @@ try:
     # obj: sock
     # <Socket> object used to connect to the server
     sock = socket(AF_INET, SOCK_STREAM)
-    sock.bind(('', 44446))
     sock.connect((ip_address, int(port)))
     msg = 'start=' + str(player_num)
     sock.sendall(msg.encode()) # Game will only start if the host clicks button

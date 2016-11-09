@@ -53,7 +53,7 @@
                             if(index > 0){
                                 $('button').prop('disabled', false);
                             }
-                            $(players).append('<tr style="color: ' + player.colour + ';"><td>' + player.userName + '</td></tr>');
+                            $(players).append('<tr style="color: ' + player.colour + ';"><td class="text-center">' + player.userName + '</td></tr>');
                         });
                     }
                     else{
@@ -86,7 +86,7 @@
             },
             error: function(req, error){
                 checkIfServerCrashed(req);
-                console.log(">>start_game_error: " + req.status);
+                console.log(">>start_game_error: " + req.responseText);
             }
         });
     }
