@@ -34,7 +34,13 @@
         window.onunload = function(e){
             var server_address = getCookie('game_address');
             var player_num = getCookie('player_num');
-            $.get(server_address, {player_num: player_num});       
+            $.ajax({
+                type: 'GET',
+                async: false,
+                url: 'http://' + server_address,
+                data: 'quit=' + player_num
+            });
+            console.log(getCookie('game_address'));
         }
     }
 
