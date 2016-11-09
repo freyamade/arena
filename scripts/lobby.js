@@ -26,6 +26,16 @@
 
         //Check for updates every second
         window.setInterval(checkUpdates, 1000);
+
+        window.onbeforeunload = function(e){
+            console.log(e);
+            return 'Are you sure you want to leave?';
+        };
+        window.onunload = function(e){
+            var server_address = getCookie('game_address');
+            var player_num = getCookie('player_num');
+            $.get(server_address, {player_num: player_num});       
+        }
     }
 
     /*
@@ -63,7 +73,6 @@
                 },
                 error : function(req,error){
                     checkIfServerCrashed(req);
-                    //console.log(">>start_game_error: " + req.status);
                 }
             }
         )
