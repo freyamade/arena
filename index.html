@@ -95,7 +95,8 @@
                 obj data - Object containing the data returned from the request
         */
         function milestoneProgress(data){
-            var percent = data.closed_issues / (data.open_issues + data.closed_issues) * 100; 
+            var percent = data.closed_issues / (data.open_issues + data.closed_issues) * 100;
+            percent = percent.toFixed(2);
             $('.progress-bar').attr('aria-valuenow', percent);
             $('.progress-bar').css( 'width', percent + '%');
             $('#progress_text').html(percent);
