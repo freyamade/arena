@@ -299,7 +299,7 @@ class ArenaServer:
         finally:
             client.close()
 
-    def _quit(self,client,address,msg):
+    def _lobbyQuit(self,client,address,msg):
         # Handles players leaving the lobby
         player_num = int(msg.split("=")[1].split()[0])
         if self.players[player_num]["host"]:
@@ -307,10 +307,9 @@ class ArenaServer:
                 if p and p != self.players[player_num]:
                     p["host"] = True
                     break
+        self.log(self.players[player_num]['userName'] + ' has left the game')
         self.players[player_num] = None
         self.lobby_size -= 1
-
-
 
     """/*
         Function: _lobbyJoin
