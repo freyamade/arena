@@ -161,6 +161,7 @@ class ArenaServer:
     def listen(self):
         self.log('Server starting up at %s on port %s' %
             (self.host, self.port))
+        self.log('Password Protected: ' + str(self.password is not None))
         self.sock.listen(10)
         self.log('Lobby Open')
         # Lobby loop
@@ -242,14 +243,16 @@ class ArenaServer:
                 data, address = broadcastSock.recvfrom(1024)
                 data = data.decode()
                 # Send back server data
-                # TODO - Add password data once we finish #9
                 # Only send response if data matches protocol, JIC
                 if data == 'arena_broadcast_req':
-                    data = {'players': self.players}
+                    data = {
+                        'players': self.players,
+                        # Only need to say if there is a password or not
+                        'password': self.password is not None
+                    }
                     serverState = {
                         'address': (self.host, self.port),
-                        'data': data,
-                        'password': self.password
+                        'data': data
                     }
                     broadcastSock.sendto(dumps(serverState).encode(), address)
             except timeout:
@@ -355,7 +358,7 @@ class ArenaServer:
                 msg = 'joined=' + str(player_index) + ';' + token
                 client.sendall(msg.encode())
             else:
-                client.sendall('incorrect')
+                client.sendall('incorrect'.encode())
         else:
             client.sendall('lobby full'.encode())
 
@@ -443,7 +446,6 @@ class ArenaServer:
         if player:
             username = player['userName']
             token = self.tokens[username]
-            self.log(username, token)
             client.sendall(token.encode())
         else:
             client.sendall('rejoin'.encode())

@@ -42,7 +42,7 @@ def newGame():
     sock = socket(AF_INET, SOCK_STREAM)
     try:
         sock.connect((ip_address, int(port)))
-        msg = 'join=' + username
+        msg = 'join=' + username + ';' + password
         sock.sendall(msg.encode())
         # Receive the join status
         response = sock.recv(1024).decode()
@@ -95,8 +95,7 @@ if len(data) > 0:
             sock = socket(AF_INET, SOCK_STREAM)
             try:
                 sock.connect((ip_address, int(port)))
-                msg = ('token=' + cookie.get('player_num').value + ';' +
-                    password)
+                msg = 'token=' + cookie.get('player_num').value
                 sock.sendall(msg.encode())
                 # Receive the token and compare it with cookie token
                 response = sock.recv(4096).decode()

@@ -151,7 +151,7 @@ class GameServerPanel(ArenaPanel):
             if self._canClose():
                 # If the broadcast server is running, update the GUI
                 if self._broadcasting:
-                    self.broadcast()
+                    self._broadcast()
                 # Close the server
                 thread = Thread(target=self._server.close)
                 thread.daemon = True
