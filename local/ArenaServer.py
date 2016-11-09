@@ -301,7 +301,7 @@ class ArenaServer:
 
     def _quit(self,client,address,msg):
         # Handles players leaving the lobby
-        player_num = int(msg.split("=")[1])
+        player_num = int(msg.split("=")[1].split()[0])
         if self.players[player_num]["host"]:
             for p in self.players:
                 if p and p != self.players[player_num]:
