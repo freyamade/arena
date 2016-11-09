@@ -287,6 +287,8 @@ class ArenaServer:
                 callback = self._lobbyStart
             elif 'token' in msg:
                 callback = self._lobbyGetToken
+            elif 'quit' in msg:
+                callback = self._quit
 
             if callback:
                 callback(client, address, msg)
@@ -296,6 +298,19 @@ class ArenaServer:
             # if so, run the (playerLeft) method from Greg's issue
         finally:
             client.close()
+
+    def _quit(self,client,address,msg):
+        # Handles players leaving the lobby
+        player_num = int(msg.split("=")[1])
+        if self.players[player_num]["host"]:
+            for p in self.players:
+                if p and p != self.players[player_num]:
+                    p["host"] = True
+                    break
+        self.players[player_num] = None
+        self.lobby_size -= 1
+
+
 
     """/*
         Function: _lobbyJoin
@@ -477,6 +492,8 @@ class ArenaServer:
                 callback = self._gameUpdate
             elif 'gameOver' in msg:
                 callback = self._gameOver
+            elif 'quit' in msg:
+                callback = self._quit
 
             if callback:
                 callback(client, address, msg)
