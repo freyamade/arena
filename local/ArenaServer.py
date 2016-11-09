@@ -288,7 +288,7 @@ class ArenaServer:
             elif 'token' in msg:
                 callback = self._lobbyGetToken
             elif 'quit' in msg:
-                callback = self._quit
+                callback = self._lobbyQuit
 
             if callback:
                 callback(client, address, msg)
@@ -492,7 +492,7 @@ class ArenaServer:
             elif 'gameOver' in msg:
                 callback = self._gameOver
             elif 'quit' in msg:
-                callback = self._quit
+                callback = self._gameQuit
 
             if callback:
                 callback(client, address, msg)
@@ -583,6 +583,14 @@ class ArenaServer:
                     'damages': self.damages[player['id']]}
             client.sendall(self._generateHttpResponse(dumps(data)))
             self.damages[player['id']] = []
+
+    def _gameQuit(self,client,address,msg):
+        # Handles players leaving the lobby
+        player_num = int(msg.split("=")[1].split()[0])
+        #self.log(self.players[player_num]['userName'] + ' has left the game')
+        self.player_objects[player_num]["health"] = 0
+        self.player_objects[player_num]["bullets"] = []
+        self.player_objects[player_num]["alive"] = FalseS
 
     """/*
         Function: _gameOver
