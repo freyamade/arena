@@ -988,6 +988,19 @@ handles updating data by sending and receiving from the <ArenaServer>
 
         //Query for new players every .1s until game is ready
         updateInterval = window.setInterval(readyGame, 100);
+
+        window.onbeforeunload = function(e){
+            return 'Are you sure you want to leave?';
+        };
+        window.onunload = function(e){
+            var server_address = getCookie('game_address');
+            $.ajax({
+                type: 'GET',
+                async: false,
+                url: 'http://' + server_address,
+                data: 'quit=' + local
+            });
+        }
     }
 
     /*
@@ -1106,8 +1119,6 @@ handles updating data by sending and receiving from the <ArenaServer>
                 updatePlayers();
             },
             error: function(req, text){
-                console.log('update ' + req.responseText);
-                console.log('update ' + text);
                 checkIfServerCrashed(req);
                 updatePlayers();
             }
@@ -1170,6 +1181,8 @@ handles updating data by sending and receiving from the <ArenaServer>
     */
     function checkIfServerCrashed(req){
         if (req.readyState < 4 || req.status >= 500){
+            window.onbeforeunload = null;
+            window.onunload = null;
             window.location = "../";
         }
     }
@@ -1314,6 +1327,8 @@ handles updating data by sending and receiving from the <ArenaServer>
             }
         }
         $.get(server, {gameOver: 1});
+        window.onbeforeunload = null;
+        window.onunload = null;
         window.alert('Game Over! Winner: ' + player.userName);
     }
 

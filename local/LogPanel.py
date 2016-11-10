@@ -65,6 +65,8 @@ class LogPanel(ArenaPanel):
         timestamp = datetime.now().strftime("%H:%M:%S")
         log_message = '[%s] - %s' % (timestamp, message)
         self._logfile.write(log_message + '\n')
+        if 'JSON' in log_message:
+            log_message = 'JSON error - Check log file'
         self._messages.append(log_message)
         self._num_messages += 1
         if self._num_messages > self._max_messages:

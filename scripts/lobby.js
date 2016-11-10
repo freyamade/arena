@@ -40,7 +40,6 @@
                 url: 'http://' + server_address,
                 data: 'quit=' + player_num
             });
-            console.log(getCookie('game_address'));
         }
     }
 
@@ -96,6 +95,8 @@
             success : function(json){
                 console.log(json);
                 if(json.ready){
+                    window.onbeforeunload = null;
+                    window.onunload = null;
                     window.location = 'game.html';
                 }
             },
@@ -141,6 +142,8 @@
     */
     function checkIfServerCrashed(req){
         if (req.readyState < 4 || req.status >= 500){
+            window.onbeforeunload = null;
+            window.onunload = null;
             window.location = "../";
         }
     }

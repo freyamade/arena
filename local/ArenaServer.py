@@ -527,6 +527,7 @@ class ArenaServer:
         # Handles players arriving at the game screen
         # Loop through the list of players, setting flags
         player_num = int(unquote(msg.split('start_up=')[1]))
+        self.log(self.players[player_num]['userName'] + ' is ready')
         payload = []
         ready = True
         for i in range(len(self.players)):
@@ -590,7 +591,7 @@ class ArenaServer:
         #self.log(self.players[player_num]['userName'] + ' has left the game')
         self.player_objects[player_num]["health"] = 0
         self.player_objects[player_num]["bullets"] = []
-        self.player_objects[player_num]["alive"] = FalseS
+        self.player_objects[player_num]["alive"] = False
 
     """/*
         Function: _gameOver
@@ -693,3 +694,5 @@ class ArenaServer:
         data = {'players': stats, 'gameLength': gameLength}
         statsfile.write(dumps(data))
         statsfile.close()
+        from stat import STAT_IROTH
+        os.chmod(filename, STAT_IROTH)

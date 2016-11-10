@@ -86,7 +86,9 @@ if len(data) > 0:
     else:
         # Cookie exists, check if the address in the form is equal to the
         # address in the cookie
-        cookie_address = cookie.get('game_address').value
+        cookie_address = cookie.get('game_address', '')
+        if cookie_address != '':
+            cookie_address = cookie_address.value
         if cookie_address != (ip_address + ':' + port):
             # The player has connected to a new game
             error += newGame()
