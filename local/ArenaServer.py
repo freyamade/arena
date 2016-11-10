@@ -694,3 +694,5 @@ class ArenaServer:
         data = {'players': stats, 'gameLength': gameLength}
         statsfile.write(dumps(data))
         statsfile.close()
+        from stat import STAT_IROTH
+        os.chmod(filename, STAT_IROTH)

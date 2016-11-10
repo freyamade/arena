@@ -142,6 +142,8 @@
     */
     function checkIfServerCrashed(req){
         if (req.readyState < 4 || req.status >= 500){
+            window.onbeforeunload = null;
+            window.onunload = null;
             window.location = "../";
         }
     }
