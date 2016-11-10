@@ -527,6 +527,7 @@ class ArenaServer:
         # Handles players arriving at the game screen
         # Loop through the list of players, setting flags
         player_num = int(unquote(msg.split('start_up=')[1]))
+        self.log(self.players[player_num]['userName'] + ' is ready')
         payload = []
         ready = True
         for i in range(len(self.players)):
