@@ -987,7 +987,7 @@ handles updating data by sending and receiving from the <ArenaServer>
         createObstacles();
 
         //Query for new players every .1s until game is ready
-        window.setInterval(readyGame, 100);
+        updateInterval = window.setInterval(readyGame, 100);
 
         window.onbeforeunload = function(e){
             return 'Are you sure you want to leave?';
