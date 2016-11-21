@@ -4,14 +4,19 @@ from socket import gethostname, gethostbyname
 from threading import Thread
 from tkinter import *
 
-"""/*
-    Class: GameServerPanel
-    <Panel> for managing the backend server graphically
 
-    See Also:
-        <ArenaPanel>
-*/"""
 class GameServerPanel(ArenaPanel):
+    """/*
+        Class: GameServerPanel
+        <Panel> for graphically controlling the underlying <ArenaServer>
+
+        Subclass of <ArenaPanel>
+
+        Inherited Methods:
+            - <ArenaPanel._initialiseVariables>
+            - <ArenaPanel._initialiseChildren>
+            - <ArenaPanel.close>
+    */"""
 
     def _initialiseVariables(self, *args, **kwargs):
         # Group: Variables

@@ -1137,7 +1137,7 @@ handles updating data by sending and receiving from the <ArenaServer>
             dataType : 'json',
             type: 'POST',
             data : {
-                start_up : getCookie('player_num')
+                startUp : getCookie('player_num')
             },
             ifModified: 'true',
             success : function(json){

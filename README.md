@@ -4,7 +4,7 @@ Arena is a 2 - 4 player browser based shoot-em-up, written in JavaScript with a 
 It's fast-paced fun for your local network.
 
 All you need is a browser and Python3.4 or greater. Running your server is easy;
-    ```python3 Arena.py``` will provide you with a GUI
+    ```python3 ArenaGUI.py``` will provide you with a GUI  
 _We are working on creating a simplistic CLI version_
 
 # Installation
