@@ -14,10 +14,11 @@ Installation is simple:
     3. Done!  
 
 # Contribute
-Read our [Developer Docs](https://exceptionalvoid.github.io/Arena)
+Read our [Contribution Guide](https://github.com/ExceptionalVoid/Arena/wiki/How-to-Contribute)  
+Also, see our [Developer Docs](https://exceptionalvoid.github.io/Arena)
 
-_Issue Tracker_: (https://github.com/ExceptionalVoid/Arena/issues)  
-_Source Code_: (https://github.com/ExceptionalVoid/Arena)
+[_Issue Tracker_](https://github.com/ExceptionalVoid/Arena/issues)  
+[_Source Code_](https://github.com/ExceptionalVoid/Arena)
 
 # Support
 If you find a bug, either submit an issue at the Issue Tracker link above, or send us an email at support@exceptionalvoid.com
