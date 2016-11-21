@@ -77,4 +77,3 @@ class ArenaPanel(LabelFrame):
     */"""
     def close(self):
         raise NotImplemented("This method must be overrided")
-

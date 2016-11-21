@@ -3,7 +3,7 @@ from cgitb import enable
 enable()
 from http.cookies import SimpleCookie
 from os import environ
-from cgi import FieldStorage # For ajax queries
+from cgi import FieldStorage  # For ajax queries
 from socket import *
 from json import loads
 

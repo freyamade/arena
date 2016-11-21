@@ -30,7 +30,8 @@ try:
     sock = socket(AF_INET, SOCK_STREAM)
     sock.connect((ip_address, int(port)))
     msg = 'start=' + str(player_num)
-    sock.sendall(msg.encode()) # Game will only start if the host clicks button
+    # Game will only start if the host clicks button
+    sock.sendall(msg.encode())
     response = loads(sock.recv(4096).decode())
     print('Content-Type: application/json')
     print()

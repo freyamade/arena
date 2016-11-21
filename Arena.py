@@ -66,7 +66,7 @@ class ArenaGUI(Tk):
             title="Game Server", width=300, height=650,
             logMessage=self._logPanel.logMessage)
         self._gameServerPanel.pack(expand=1, fill=BOTH)
-        
+
     """/*
         Function: _close
         Called when the user clicks the X button.
