@@ -42,7 +42,7 @@ class ArenaServer:
         sock.bind((self.host, self.port))
 
         # obj: sock
-        # The <Socket> the server listens on        
+        # The <Socket> the server listens on
         self.sock = sock
 
         # Game var setup
@@ -694,5 +694,5 @@ class ArenaServer:
         data = {'players': stats, 'gameLength': gameLength}
         statsfile.write(dumps(data))
         statsfile.close()
-        from stat import STAT_IROTH
-        os.chmod(filename, STAT_IROTH)
+        from stat import S_IROTH
+        os.chmod(filename, S_IROTH)
