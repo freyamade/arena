@@ -52,6 +52,7 @@ class LogPanel(ArenaPanel):
         # Ensure a logs directory exists
         if not path.exists('./logs'):
             makedirs('./logs')
+
         """/*
             var: _logfile
             The file that all log messages will be written out to.
@@ -74,7 +75,6 @@ class LogPanel(ArenaPanel):
     """/*
         Group: Public Methods
     */"""
-
     """/*
         Function: logMessage
         Take in a message and display it in the log.

@@ -1,5 +1,17 @@
 from tkinter import *
 
+"""/*
+    Class: ArenaPanel
+    Abstract super class for all <Panel> objects to be used as children in
+    the <ArenaGUI>.
+
+    Provides an interface for panel specific methods, and some helper
+    methods
+*/"""
+class ArenaPanel(LabelFrame):
+    """/*
+        Group: Constructors
+    */"""
 
 class ArenaPanel(LabelFrame):
     """/*
@@ -9,13 +21,9 @@ class ArenaPanel(LabelFrame):
 
         Provides an interface for panel specific methods, and some helper
         methods
-    */"""
 
-    """/*
         Group: Constructors
-    */"""
 
-    """/*
         Constructor: __init__
         Create the <Panel> and initialise any instance variables it may have
 
@@ -63,6 +71,8 @@ class ArenaPanel(LabelFrame):
     */"""
     def close(self):
         raise NotImplemented("This method must be overrided")
+
+    # Group: Private Methods
 
     """/*
         Group: Private Methods

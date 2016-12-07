@@ -458,7 +458,7 @@ class ArenaServer:
                         username_count += 1
                 if username_count > 0:
                     username += ' (%i)' % (username_count)
-                self.log(username +  ' has joined the lobby!')
+                self.log(username + ' has joined the lobby!')
                 # Get the player coords
                 player_coords_index = choice(range(len(self.coords)))
                 player_coords = self.coords[player_coords_index]
