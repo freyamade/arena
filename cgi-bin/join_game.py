@@ -12,25 +12,44 @@ from http.cookies import SimpleCookie
     Servers can only be joined if they are not full and have not started.
 */"""
 
-# obj: data
-# A <FieldStorage> instance containing the form-data passed to this page
+"""/*
+    Group: Variables
+*/"""
+
+
+"""/*
+    var: data
+    A <FieldStorage> instance containing the form-data passed to this page
+*/"""
 data = FieldStorage()
 
-# string: username
-# The username that the user inserts into the form
+"""/*
+    var: username
+    The username that the user inserts into the form
+*/"""
 username = ""
 
-# string: ip_address
-# The ip address that the user inserts into the form
+"""/*
+    var: ip_address
+    The ip address that the user inserts into the form
+*/"""
 ip_address = ""
 
-# string: port
-# The port number that the user inserts into the form; defaults to 44444
+"""/*
+    var: port
+    The port number that the user inserts into the form; defaults to 44444
+*/"""
 port = "44444"
 
-# string: error
-# A string for outputting any errors that occur
+"""/*
+    var: error
+    A string for outputting any errors that occur
+*/"""
 error = ''
+
+"""/*
+    Group: Functions
+*/"""
 
 """/*
     Function: newGame

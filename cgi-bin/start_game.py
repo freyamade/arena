@@ -10,23 +10,36 @@ from json import dumps, loads
     Script: Start Game
     Backend Python script for joining a game
 */"""
+
+"""/*
+    Group: Variables
+*/"""
 try:
-    # obj: cookie
-    # A <SimpleCookie> instance for reading and writing browser cookies
+    """/*
+        var: cookie
+        A <SimpleCookie> instance for reading and writing browser cookies
+    */"""
     cookie = SimpleCookie()
     cookie.load(environ['HTTP_COOKIE'])
 
-    # int: player_num
-    # The index of this player in <Server.players>
+    """/*
+        var: player_num
+        The index of this player in <Server.players>
+    */"""
     player_num = cookie.get('player_num').value
-    # string: ip_address, port
-    # The ip_address and port number of the server
+
+    """/*
+        var: ip_address, port
+        The ip_address and port number of the server
+    */"""
     ip_address, port = cookie.get('game_address').value.split(':')
 
     # Create the socket
 
-    # obj: sock
-    # <Socket> object used to connect to the server
+    """/*
+        var: sock
+        <Socket> object used to connect to the server
+    */"""
     sock = socket(AF_INET, SOCK_STREAM)
     sock.connect((ip_address, int(port)))
     msg = 'start=' + str(player_num)

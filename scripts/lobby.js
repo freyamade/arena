@@ -3,12 +3,21 @@
     AJAX script for updating the <Lobby>
 */
 (function(){
-    //ptr: players
-    //Points to the body of the table in order to add or remove players
-    //from the display as needed
+    /*
+        Group: Variables
+    */
+    /*
+        var: players
+        Points to the body of the table in order to add or remove players
+        from the display as needed
+    */
     var players;
 
     window.addEventListener('DOMContentLoaded', init, false);
+
+    /*
+        Group: Functions
+    */
 
     /*
         Function: init

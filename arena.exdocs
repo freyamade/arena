@@ -1,0 +1,27 @@
+Title: Arena
+Subtitle: A Game of Tanks
+
+Group: GUI {
+    ArenaGUI,
+    ArenaPanel,
+    GameServerPanel,
+    LogPanel
+}
+
+Group: Servers {
+    ArenaServer,
+}
+
+Group: JavaScript Web Code {
+    Arena JS,
+    Game Stats AJAX,
+    Lobby Client
+}
+
+Group: Python Web Code {
+    Game Stats,
+    Join Game,
+    List Games,
+    Lobby,
+    Start Game
+}

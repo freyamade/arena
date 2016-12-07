@@ -7,7 +7,9 @@
     $(document).ready(function(){
         $('table button').click(request);
     });
-
+    /*
+        Group: Functions
+    */
     /*
         Function: request
         Request the file data from the selected match stats.
