@@ -38,16 +38,16 @@ class LogPanel(ArenaPanel):
         self._messages = deque()
 
         """/*
-            var: _num_messages
+            var: _numMessages
             The number of messages currently on display
         */"""
-        self._num_messages = 0
+        self._numMessages = 0
 
         """/*
-            var: _max_messages
+            var: _maxMessages
             The maximum number of messages that can be displayed at one time
         */"""
-        self._max_messages = 42
+        self._maxMessages = 42
 
         # Ensure a logs directory exists
         if not path.exists('./logs'):
@@ -75,6 +75,7 @@ class LogPanel(ArenaPanel):
     """/*
         Group: Public Methods
     */"""
+
     """/*
         Function: logMessage
         Take in a message and display it in the log.
@@ -90,9 +91,9 @@ class LogPanel(ArenaPanel):
         log_message = '[%s] - %s' % (timestamp, message)
         self._logfile.write(log_message + '\n')
         self._messages.append(log_message)
-        self._num_messages += 1
-        if self._num_messages > self._max_messages:
+        self._numMessages += 1
+        if self._numMessages > self._maxMessages:
             self._messages.popleft()
-            self._num_messages -= 1
+            self._numMessages -= 1
 
         self._log.set('\n'.join(self._messages))

@@ -122,7 +122,7 @@ class ArenaGUI(Tk):
         cannot be closed
 
         Parameters:
-            str panel_title - The title of the <Panel> that failed to close
+            str panelTitle - The title of the <Panel> that failed to close
 
         Example:
             Running the following code:
@@ -145,11 +145,11 @@ class ArenaGUI(Tk):
                 +---------------------------------+
             (end diagram)
     */"""
-    def _popup(self, panel_title):
+    def _popup(self, panelTitle):
         popup = Toplevel(self)
         popup.title('Panel failed to close')
 
-        message = 'Panel "%s" failed to close' % (panel_title)
+        message = 'Panel "%s" failed to close' % (panelTitle)
         Label(popup, text=message).pack(fill=BOTH, expand=1)
 
         Button(popup, command=popup.destroy, text="Close").pack(

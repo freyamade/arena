@@ -37,10 +37,10 @@ format = data.getfirst('format', 'not-json')
 output = ''
 
 """/*
-    var: player_num
+    var: playerNum
     Index of the client in the <Server.players> array; stored in cookie
 */"""
-player_num = -1
+playerNum = -1
 
 """/*
     var: button
@@ -63,15 +63,15 @@ cookie = SimpleCookie()
 */"""
 try:
     cookie.load(environ['HTTP_COOKIE'])
-    player_num = int(cookie.get('player_num').value)
-    ip_address, port = cookie.get('game_address').value.split(':')
-    if player_num == 0:
+    playerNum = int(cookie.get('playerNum').value)
+    ipAddress, port = cookie.get('gameAddress').value.split(':')
+    if playerNum == 0:
         button = '<button class="btn btn-success"><span class="glyphicon glyphicon-ok"></span> Start Game</button>'
 
     # Query the server for players
     sock = socket(AF_INET, SOCK_STREAM)
-    sock.connect((ip_address, int(port)))
-    msg = 'query=' + str(player_num) 
+    sock.connect((ipAddress, int(port)))
+    msg = 'query=' + str(playerNum) 
     sock.sendall(msg.encode())
     # Receive the status
     response = sock.recv(4096).decode()
@@ -135,7 +135,7 @@ try:
                     %s
                 </div>
             </body>
-        </html>""" % (ip_address, players, button))
+        </html>""" % (ipAddress, players, button))
 except:
     # Redirect home
     print('Status: 303')

@@ -41,13 +41,13 @@
             return 'Are you sure you want to leave?';
         };
         window.onunload = function(e){
-            var server_address = getCookie('game_address');
-            var player_num = getCookie('player_num');
+            var serverAddress = getCookie('gameAddress');
+            var playerNum = getCookie('playerNum');
             $.ajax({
                 type: 'GET',
                 async: false,
-                url: 'http://' + server_address,
-                data: 'quit=' + player_num
+                url: 'http://' + serverAddress,
+                data: 'quit=' + playerNum
             });
         }
     }
@@ -60,12 +60,12 @@
         If the host has started the game, run <startGame>.
     */
     function checkUpdates(){
-        var player_num = getCookie('player_num');
+        var playerNum = getCookie('playerNum');
         $.ajax({
                 url: 'lobby.py?format=json',
                 dataType: 'json',
                 data: {
-                    query: player_num
+                    query: playerNum
                 },
                 ifModified : true,
                 success : function(json){
