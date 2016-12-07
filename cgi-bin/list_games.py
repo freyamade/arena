@@ -12,25 +12,36 @@ from json import loads
     Waits for 3 <timeout>s before displaying results
 */"""
 
-# Group: Variables
+"""/*
+    Group: Variables
+*/"""
 
-# hash: servers
-# A dict of server data returned from the broadcast
-# K: V = Server Address: Server Data
+"""/*
+    var: servers
+    A dict of server data returned from the broadcast
+
+    K: V = Server Address: Server Data
+*/"""
 servers = {}
 
-# obj: sock
-# <Socket> that will be used to send a broadcast and receive responses
+"""/*
+    var: sock
+    <Socket> that will be used to send a broadcast and receive responses
+*/"""
 sock = socket(AF_INET, SOCK_DGRAM)
 sock.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
 
-# int: timeouts
-# The number of timeouts remaining before results are displayed
-# Timeouts are set to 1 second
+"""/*
+    var: timeouts
+    The number of timeouts remaining before results are displayed
+    Timeouts are set to 1 second
+*/"""
 timeouts = 3
 
-# string: form_template
-# A template for the form that will be used to join the game
+"""/*
+    var: form_template
+    A template for the form that will be used to join the game
+*/"""
 form_template = """
 <form action="join_game.py" method="POST">
     <div class="input-group">
@@ -51,8 +62,10 @@ form_template = """
     <input type="hidden" class="port" name="port" value="%s" />
 </form>"""
 
-# string: protected_form_template
-# An alternate version of <form_template> for use when passwords are needed
+"""/*
+    var: protected_form_template
+    An alternate version of <form_template> for use when passwords are needed
+*/"""
 protected_form_template = """
 <form action="join_game.py" method="POST">
     <div class="input-group">
@@ -78,13 +91,17 @@ protected_form_template = """
     <input type="hidden" class="port" name="port" value="%s" />
 </form>"""
 
-# string: error
-# A string that will contain any error message.
-# Will be put in a Bootstrap alert
+"""/*
+    var: error
+    A string that will contain any error message.
+    Will be put in a Bootstrap alert
+*/"""
 error = ''
 
-# string: server_table
-# A string containing the table of the servers and their data
+"""/*
+    var: server_table
+    A string containing the table of the servers and their data
+*/"""
 server_table = """<div class="alert alert-info">
                       <strong>No Servers Found</strong>
                   </div>"""

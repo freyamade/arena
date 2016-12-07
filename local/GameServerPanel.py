@@ -19,57 +19,82 @@ class GameServerPanel(ArenaPanel):
     */"""
 
     def _initialiseVariables(self, *args, **kwargs):
-        # Group: Variables
+        """/*
+            Group: Variables
+        */"""
 
-        # string: _host
-        # The host address for the server
+        """/*
+            var: _host
+            The host address for the server
+        */"""
         self._host = gethostbyname(gethostname())
 
         default_port = 44444
-        # obj: _port
-        # <IntVar> object for managing the port number passed by the user
+        """/*
+            var: _port
+            <IntVar> object for managing the port number passed by the user
+        */"""
         self._port = IntVar()
         self._port.set(default_port)
 
-        # obj: _status
-        # <StringVar> object for managing the status label text
+        """/*
+            var: _status
+            <StringVar> object for managing the status label text
+        */"""
         self._status = StringVar()
         self._status.set("Server Stopped")
 
-        # obj: _buttonLabel
-        # <StringVar> object for managing the game server button text
+        """/*
+            var: _buttonLabel
+            <StringVar> object for managing the game server button text
+        */"""
         self._buttonLabel = StringVar()
         self._buttonLabel.set("Start")
 
-        # obj: _broadcastStatus
-        # <StringVar> object for managing the broadcast service status text
+        """/*
+            var: _broadcastStatus
+            <StringVar> object for managing the broadcast service status text
+        */"""
         self._broadcastStatus = StringVar()
         self._broadcastStatus.set("Not Broadcasting")
 
-        # obj: _broadcastButtonLabel
-        # <StringVar> object for managing the broadcast button text
+        """/*
+            var: _broadcastButtonLabel
+            <StringVar> object for managing the broadcast button text
+        */"""
         self._broadcastButtonLabel = StringVar()
         self._broadcastButtonLabel.set("Start Broadcasting")
 
-        # bool: _running
-        # Flag for whether or not the server is already running
+        """/*
+            var: _running
+            Flag for whether or not the server is already running
+        */"""
         self._running = False
 
-        # obj: _server
-        # The currently running <ArenaServer> instance
+        """/*
+            var: _server
+            The currently running <ArenaServer> instance
+        */"""
         self._server = None
 
-        # bool: _broadcasting
-        # Flag for whether or not the server is broadcasting
+        """/*
+            var: _broadcasting
+            Flag for whether or not the server is broadcasting
+        */"""
         self._broadcasting = False
 
-        # obj: _logMessage
-        # A function to be passed into the server to allow for logging into the
-        # <LogPanel>
+        """/*
+            var: _logMessage
+            A function to be passed into the server to allow for logging into
+            the <LogPanel>
+        */"""
         self._logMessage = kwargs['logMessage']
 
-        # obj: _password
-        # <StringVar> object used for maintaining passwords input into the GUI
+        """/*
+            var: _password
+            <StringVar> object used for maintaining passwords input into the
+            GUI
+        */"""
         self._password = StringVar()
 
     def _initialiseChildren(self):
@@ -120,7 +145,9 @@ class GameServerPanel(ArenaPanel):
         # Display a welcome message
         self._logMessage("Welcome to the Arena!")
 
-    # Group: Private Methods
+    """/*
+        Group: Private Methods
+    */"""
 
     """/*
         Function: _toggle

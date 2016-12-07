@@ -1,87 +1,133 @@
 /*
-Script: Arena
+Script: Arena JS
 JavaScript client code that runs in browser. Handles drawing of objects and, using AJAX,
 handles updating data by sending and receiving from the <ArenaServer>
 */
 (function(){
-    //Section: Global Variables
+    /*
+        Section: Variables
+    */
 
-    //Group: Game Set Up Variables
+    /*
+        Group: Game Set Up Variables
+    */
 
-    //boolean: ready
-    //False until all players are ready
+    /*
+        var: ready
+        False until all players are ready
+    */
     var ready = false;
 
-    //int: countdownTimer
-    //Number of seconds between game ready and game start
+    /*
+        var: countdownTimer
+        Number of seconds between game ready and game start
+    */
     var countdownTimer = 3;
     
-    //Group: HTML Element Variables
+    /*
+        Group: HTML Element Variables
+    */
 
-    //obj: canvas
-    //HTML5 canvas for drawing the game on
+    /*
+        var: canvas
+        HTML5 canvas for drawing the game on
+    */
     var canvas;
 
-    //obj: context
-    //Context object used for drawing on the canvas
+    /*
+        var: context
+        Context object used for drawing on the canvas
+    */
     var context;
 
-    //int: height
-    //Height of the canvas; used for drawing
+    /*
+        var: height
+        Height of the canvas; used for drawing
+    */
     var height;
 
-    //int: width
-    //Width of the canvas; used for drawing
+    /*
+        var: width
+        Width of the canvas; used for drawing
+    */
     var width;
 
-    //array: displayRows
-    //An array of table rows in the scoreboard table; used for updating displays
+    /*
+        var: displayRows
+        An array of table rows in the scoreboard table; used for updating displays
+    */
     var displayRows = [];
 
-    //Group: Bullet Constant Variables
+    /*
+        Group: Bullet Constant Variables
+    */
 
-    //int: bulletSize
-    //Size of a <Bullet> in pixels
+    /*
+        var: bulletSize
+        Size of a <Bullet> in pixels
+    */
     var bulletSize = 5;
 
-    //int: bulletSpeed
-    //The number of pixels a <Bullet> moves per frame
+    /*
+        var: bulletSpeed
+        The number of pixels a <Bullet> moves per frame
+    */
     var bulletSpeed = 25;
 
-    //int: maxBounces
-    //The maximum number of times a <Bullet> may bounce off of walls / <Obstacle>s
+    /*
+        var: maxBounces
+        The maximum number of times a <Bullet> may bounce off of walls / <Obstacle>s
+    */
     var maxBounces = 3;
 
-    //int: maxDamage
-    //The maximum number of damage a <Bullet> can deal to a <Player>
+    /*
+        var: maxDamage
+        The maximum number of damage a <Bullet> can deal to a <Player>
+    */
     var maxDamage = 10;
 
-    //Group: Player Constant Variables
+    /*
+        Group: Player Constant Variables
+    */
 
-    //int: playerSize
-    //Size of the <Player>s in pixels
+    /*
+        var: playerSize
+        Size of the <Player>s in pixels
+    */
     var playerSize = 20;
 
-    //int: playerSpeed
-    //The number of pixels a <Player> will move in a direction per frame
+    /*
+        var: playerSpeed
+        The number of pixels a <Player> will move in a direction per frame
+    */
     var playerSpeed = 4;
 
-    //int: maxBullets
-    //The maximum number of bullets a <Player> is allowed to have
+    /*
+        var: maxBullets
+        The maximum number of bullets a <Player> is allowed to have
+    */
     var maxBullets = 3;
 
-    //Group: Player Management Variables
+    /*
+        Group: Player Management Variables
+    */
 
-    //array: players
-    //Array of all the <Player>s in the game
+    /*
+        var: players
+        Array of all the <Player>s in the game
+    */
     var players = [null, null, null, null];
 
-    //int: local
-    //The index of the local <Player> in the list; used for updating the local player's data
+    /*
+        var: local
+        The index of the local <Player> in the list; used for updating the local player's data
+    */
     var local;
 
-    //obj: move
-    //A JavaScript object used for maintaining information on which way(s) the local <Player> is trying to move
+    /*
+        var: move
+        A JavaScript object used for maintaining information on which way(s) the local <Player> is trying to move
+    */
     var move = {
         up : false,
         down : false,
@@ -89,40 +135,60 @@ handles updating data by sending and receiving from the <ArenaServer>
         right : false
     };
 
-    //Group: Obstacle Management Variables
+    /*
+        Group: Obstacle Management Variables
+    */
 
-    //array: obstacles
-    //An array of all <Obstacle> objects on the map
+    /*
+        var: obstacles
+        An array of all <Obstacle> objects on the map
+    */
     var obstacles = [];
 
-    //Group: Game Control Variables
+    /*
+        Group: Game Control Variables
+    */
 
-    //string: server
-    //URL of the server
+    /*
+        var: server
+        URL of the server
+    */
     var server;
 
-    //int: updateInterval
-    //The id of the <Interval> used for running methods updating the canvas / game state
+    /*
+        var: updateInterval
+        The id of the <Interval> used for running methods updating the canvas / game state
+    */
     var updateInterval;
 
-    //int: ajaxInterval
-    //The id of the <Interval> used for making periodic ajax requests to the server
+    /*
+        var: ajaxInterval
+        The id of the <Interval> used for making periodic ajax requests to the server
+    */
     var ajaxInterval;
 
-    //int: playersAlive
-    //The number of <Player>s who remain alive
+    /*
+        var: playersAlive
+        The number of <Player>s who remain alive
+    */
     var playersAlive;
 
-    //array: damages
-    //All the damage that has been dealt by the local Player, stored in <Damage> objects
+    /*
+        var: damages
+        All the damage that has been dealt by the local Player, stored in <Damage> objects
+    */
     var damages = [];
 
     /*
         Class: Bullet
         A Bullet is fired by a <Player>, bounces off walls and damages Players other than the one who fired it
+    */
 
+    /*
         Group: Constructors
+    */
 
+    /*
         Constructor: Bullet
         Constructs a new Bullet instance
 
@@ -134,46 +200,70 @@ handles updating data by sending and receiving from the <ArenaServer>
     */
     function Bullet(x, y, owner, number){
         return {
-            //Group: Variables
+            /*
+                Group: Variables
+            */
 
-            //int: size
-            //Size of this Bullet
-            //Used in <collisionBetween>
+            /*
+                var: size
+                Size of this Bullet
+                
+                Used in <collisionBetween>
+            */
             size : bulletSize,
 
-            //int: x
-            //x coordinate of the top-left corner of this Bullet
+            /*
+                var: x
+                x coordinate of the top-left corner of this Bullet
+            */
             x : x - (bulletSize / 2),
 
-            //int: y
-            //y coordinate of the top-left corner of this Bullet
+            /*
+                var: y
+                y coordinate of the top-left corner of this Bullet
+            */
             y : y - (bulletSize / 2),
 
-            //int: speed
-            //Number of pixels this Bullet moves per frame
+            /*
+                var: speed
+                Number of pixels this Bullet moves per frame
+            */
             speed : bulletSpeed,
 
-            //int: xChange
-            //Number of pixels this Bullet will move in the x-axis in the next frame
+            /*
+                var: xChange
+                Number of pixels this Bullet will move in the x-axis in the next frame
+            */
             xChange : 0,
 
-            //int: yChange
-            //Number of pixels this Bullet will move in the y-axis in the next frame
+            /*
+                var: yChange
+                Number of pixels this Bullet will move in the y-axis in the next frame
+            */
             yChange : 0,
 
-            //int: bounces
-            //The number of bounces this Bullet has remaining
+            /*
+                var: bounces
+                The number of bounces this Bullet has remaining
+            */
             bounces : maxBounces,
 
-            //int: owner
-            //The index of the <Player> who fired this bullet in <players>
+            /*
+                var: owner
+                The index of the <Player> who fired this bullet in <players>
+            */
             owner : owner,
 
-            //int: number
-            //The index of this Bullet inside the owner's <Player.bullets> array
+            /*
+                var: number
+                The index of this Bullet inside the owner's <Player.bullets> array
+            */
             number : number,
 
-            //Group: Methods
+            /*
+                Group: Methods
+            */
+
             /*
                 Function: getMovementData
                 Getter for all movement data for this Bullet
@@ -383,9 +473,13 @@ handles updating data by sending and receiving from the <ArenaServer>
     /*
         Class: Player
         Objects representing the player controlled entity in the game
+    */
 
+    /*
         Group: Constructors
-            
+    */
+
+    /*      
         Constructor: Player
         Construct a new Player instance
 
@@ -398,58 +492,88 @@ handles updating data by sending and receiving from the <ArenaServer>
     */
     function Player(x, y, index, colour, userName){
         return {
-            //Group: Variables
+            /*
+                Group: Variables
+            */
 
-            //int: size
-            //Size of this Player in pixels
-            //Used in <collisionBetween>
+            /*
+                var: size
+                Size of this Player in pixels
+                
+                Used in <collisionBetween>
+            */
             size : playerSize,
             
-            //int: x
-            //x coordinate of the top left corner of this Player
+            /*
+                var: x
+                x coordinate of the top left corner of this Player
+            */
             x : x - (playerSize / 2),
 
-            //int: y
-            //y coordinate of the top left corner of this Player
+            /*
+                var: y
+                y coordinate of the top left corner of this Player
+            */
             y : y - (playerSize / 2),
 
-            //int: xChange
-            //The amount of pixels this Player will move in the x axis in the next frame
+            /*
+                var: xChange
+                The amount of pixels this Player will move in the x axis in the next frame
+            */
             xChange : 0,
 
-            //int: yChange
-            //The amount of pixels this Player will move in the y axis in the next frame
+            /*
+                var: yChange
+                The amount of pixels this Player will move in the y axis in the next frame
+            */
             yChange : 0,
 
-            //float: health
-            //The current health of this Player
+            /*
+                var: health
+                The current health of this Player
+            */
             health : 100.00,
 
-            //array: bullets
-            //An array maintaining the <Bullet> objects this Player has fired that are still alive
+            /*
+                var: bullets
+                An array maintaining the <Bullet> objects this Player has fired that are still alive
+            */
             bullets : [null, null, null],
 
-            //int: numBullets
-            //The number of bullets this Player can still fire
+            /*
+                var: numBullets
+                The number of bullets this Player can still fire
+            */
             numBullets : maxBullets,
 
-            //int: id
-            //The index of this Player in <players>
+            /*
+                var: id
+                The index of this Player in <players>
+            */
             id : index,
 
-            //string: colour
-            //The colour of this Player
+            /*
+                var: colour
+                The colour of this Player
+            */
             colour : colour,
 
-            //string: userName
-            //The username of the player controlling this Player
+            /*
+                var: userName
+                The username of the player controlling this Player
+            */
             userName : userName,
 
-            //boolean: alive
-            //True as long as this Player's health is above 0
+            /*
+                boolean: alive
+                True as long as this Player's health is above 0
+            */
             alive : true,
 
-            //Group: Methods
+            /*
+                Group: Methods
+            */
+
             /*
                 Function: getHealth
                 Getter for this Player's current <health>
@@ -794,9 +918,13 @@ handles updating data by sending and receiving from the <ArenaServer>
     /*
         Class: Obstacle
         Objects representing the walls in the map, that <Bullet>s bounce off of and <Player>s pass through.
+    */
 
+    /*
         Group: Constructors
+    */
 
+    /*
         Constructor: Obstacle
         Construct a new Obstacle instance
 
@@ -818,29 +946,43 @@ handles updating data by sending and receiving from the <ArenaServer>
         //Allow for only straight lines to begin
         //When creating obstacles, make sure that (x1, y1) is closer to (0, 0)
         return {
-            //Group: Variables
+            /*
+                Group: Variables
+            */
 
-            //int: x1
-            //x coordinate of the start of this Obstacle
+            /*
+                var: x1
+                x coordinate of the start of this Obstacle
+            */
             x1 : x1,
 
-            //int: y1
-            //y coordinate of the start of this Obstacle
+            /*
+                var: y1
+                y coordinate of the start of this Obstacle
+            */
             y1 : y1,
 
-            //int: x2
-            //x coordinate of the end of this Obstacle
+            /*
+                var: x2
+                x coordinate of the end of this Obstacle
+            */
             x2 : x2,
 
-            //int: y2
-            //y coordinate of the end of this Obstacle
+            /*
+                var: y2
+                y coordinate of the end of this Obstacle
+            */
             y2 : y2,
             
-            //boolean: horizontal
-            //True if <y1> == <y2>; used for determining <Bullet> bounces
+            /*
+                var: horizontal
+                True if <y1> == <y2>; used for determining <Bullet> bounces
+            */
             horizontal : y1 === y2 ? true : false,
 
-            //Group: Methods
+            /*
+                Group: Methods
+            */
 
             /*
                 Function: draw
@@ -897,7 +1039,13 @@ handles updating data by sending and receiving from the <ArenaServer>
         }
     }
 
-    //Section: Helper Functions
+    /*
+        Section: Functions
+    */
+
+    /*
+        Group: Helper Functions
+    */
 
     /*
         Function: collisionBetween
@@ -965,7 +1113,9 @@ handles updating data by sending and receiving from the <ArenaServer>
         return "";
     }
 
-    //Section: Game Code
+    /*
+        Group: Game Setup Functions
+    */
     window.addEventListener('DOMContentLoaded', init, false);
 
     /*
@@ -1080,6 +1230,10 @@ handles updating data by sending and receiving from the <ArenaServer>
     }
 
     /*
+        Group: AJAX Functions
+    */
+
+    /*
         Function: updatePlayers
         Sends the local <Player> data to the server, receives the updated data for all Players and updates each Player accordingly
     */
@@ -1186,7 +1340,9 @@ handles updating data by sending and receiving from the <ArenaServer>
             window.location = "../";
         }
     }
-    //Game loop methods
+    /*
+        Group: Game Loop Functions
+    */
 
     /*
         Function: update
@@ -1244,7 +1400,9 @@ handles updating data by sending and receiving from the <ArenaServer>
         });
     }
 
-    //Control methods
+    /*
+        Group: Control Functions
+    */
 
     /*
         Function: playerFire
@@ -1292,7 +1450,9 @@ handles updating data by sending and receiving from the <ArenaServer>
         players[local].stop(e);
     }
 
-    //Game state methods
+    /*
+        Group: Game State Handlers
+    */
 
     /*
         Function: isGameOver

@@ -10,8 +10,13 @@ import os
     Displays the stats of all games saved on the server
 */"""
 
-# string: files
-# HTML table containing the date for each game and a link to see the stats
+"""/*
+    Group: Variables
+*/"""
+"""/*
+    var: files
+    HTML table containing the date for each game and a link to see the stats
+*/"""
 files = '<div class="alert alert-info">There are no stats yet</div>'
 # File name will be %d%m%Y%H%M%S.ast
 # We should sort them so the latest game is at the top

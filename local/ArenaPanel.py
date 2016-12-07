@@ -9,9 +9,13 @@ class ArenaPanel(LabelFrame):
 
         Provides an interface for panel specific methods, and some helper
         methods
+    */"""
 
+    """/*
         Group: Constructors
+    */"""
 
+    """/*
         Constructor: __init__
         Create the <Panel> and initialise any instance variables it may have
 
@@ -26,15 +30,21 @@ class ArenaPanel(LabelFrame):
     def __init__(self, master, title, width, height, *args, **kwargs):
         super(ArenaPanel, self).__init__(
             master, text=title, width=width, height=height)
-        # Group: Variables
+        """/*
+            Group: Variables
+        */"""
 
-        # obj: _master
-        # The parent of the window
+        """/*
+            var: _master
+            The parent of the window
+        */"""
         self._master = master
         self._initialiseVariables(*args, **kwargs)
         self._initialiseChildren()
 
-    # Group: Public Methods
+    """/*
+        Group: Public Methods
+    */"""
 
     """/*
         Function: getTitle
@@ -54,7 +64,9 @@ class ArenaPanel(LabelFrame):
     def close(self):
         raise NotImplemented("This method must be overrided")
 
-    # Group: Private Methods
+    """/*
+        Group: Private Methods
+    */"""
 
     """/*
         Function: _popup
@@ -73,7 +85,9 @@ class ArenaPanel(LabelFrame):
         Button(popup, command=popup.destroy, text="Close").pack(
             fill=BOTH, expand=1)
 
-    # Group: Abstract Methods
+    """/*
+        Group: Abstract Methods
+    */"""
 
     """/*
         Function: _initialiseVariables

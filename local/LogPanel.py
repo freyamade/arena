@@ -19,32 +19,45 @@ class LogPanel(ArenaPanel):
     */"""
 
     def _initialiseVariables(self, *args, **kwargs):
-        # Group: Variables
+        """/*
+            Group: Variables
+        */"""
 
-        # obj: _log
-        # <StringVar> for managing the log display
+        """/*
+            var: _log
+            <StringVar> for managing the log display
+        */"""
         self._log = StringVar()
         self._log.set("")
 
-        # array: _messages
-        # An array for holding the amount of messages that can be displayed
-        # in the panel at one time
+        """/*
+            var: _messages
+            An array for holding the amount of messages that can be displayed
+            in the panel at one time
+        */"""
         self._messages = deque()
 
-        # int: _num_messages
-        # The number of messages currently on display
+        """/*
+            var: _num_messages
+            The number of messages currently on display
+        */"""
         self._num_messages = 0
 
-        # int: _max_messages
-        # The maximum number of messages that can be displayed at one time
+        """/*
+            var: _max_messages
+            The maximum number of messages that can be displayed at one time
+        */"""
         self._max_messages = 42
 
         # Ensure a logs directory exists
         if not path.exists('./logs'):
             makedirs('./logs')
-        # obj: _logfile
-        # The file that all log messages will be written out to.
-        # This is used to store a complete log of everything that happened
+        """/*
+            var: _logfile
+            The file that all log messages will be written out to.
+
+            This is used to store a complete log of everything that happened
+        */"""
         self._logfile = open(
             './logs/arena_log_' + datetime.now().strftime('%d%m%Y%H%M%S'),
             'w', 1)
@@ -60,10 +73,13 @@ class LogPanel(ArenaPanel):
 
     """/*
         Group: Public Methods
+    */"""
 
+    """/*
         Function: logMessage
         Take in a message and display it in the log.
-        Also write the message to a complete log file
+
+        Also write the message to a complete log file.
     */"""
     def logMessage(self, message):
         # Takes in a message from an external source and adds it to the server
