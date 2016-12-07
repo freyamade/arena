@@ -39,10 +39,10 @@ sock.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
 timeouts = 3
 
 """/*
-    var: form_template
+    var: formTemplate
     A template for the form that will be used to join the game
 */"""
-form_template = """
+formTemplate = """
 <form action="join_game.py" method="POST">
     <div class="input-group">
         <span class="input-group-addon">
@@ -58,15 +58,15 @@ form_template = """
         </span>
     </div>
 
-    <input type="hidden" class="ip" name="ip_address" value="%s" />
+    <input type="hidden" class="ip" name="ipAddress" value="%s" />
     <input type="hidden" class="port" name="port" value="%s" />
 </form>"""
 
 """/*
-    var: protected_form_template
-    An alternate version of <form_template> for use when passwords are needed
+    var: protectedFormTemplate
+    An alternate version of <formTemplate> for use when passwords are needed
 */"""
-protected_form_template = """
+protectedFormTemplate = """
 <form action="join_game.py" method="POST">
     <div class="input-group">
         <span class="input-group-addon">
@@ -87,7 +87,7 @@ protected_form_template = """
          Join Game
     </button>
 
-    <input type="hidden" class="ip" name="ip_address" value="%s" />
+    <input type="hidden" class="ip" name="ipAddress" value="%s" />
     <input type="hidden" class="port" name="port" value="%s" />
 </form>"""
 
@@ -99,10 +99,10 @@ protected_form_template = """
 error = ''
 
 """/*
-    var: server_table
+    var: serverTable
     A string containing the table of the servers and their data
 */"""
-server_table = """<div class="alert alert-info">
+serverTable = """<div class="alert alert-info">
                       <strong>No Servers Found</strong>
                   </div>"""
 
@@ -121,7 +121,7 @@ except Exception as e:
     error = e
 
 if len(servers) != 0:
-    server_table = """<table class="table table-bordered table-striped">
+    serverTable = """<table class="table table-bordered table-striped">
                           <thead>
                               <tr>
                                   <th class="text-center col-sm-4">
@@ -139,12 +139,12 @@ if len(servers) != 0:
                    """
     for addr in servers:
         data = servers[addr]
-        player_data = [player for player in data['players']
+        playerData = [player for player in data['players']
                        if player is not None]
         players = ''
-        if len(player_data) > 0:
+        if len(playerData) > 0:
             players = '<ol>'
-            for player in player_data:
+            for player in playerData:
                 players += """<li style="color: %s;">
                                   %s
                               </li>
@@ -152,10 +152,10 @@ if len(servers) != 0:
             players += '</ol>'
         else:
             players = 'No Players in Lobby'
-        this_form = (form_template if not data['password'] else
-            protected_form_template)
-        this_form = this_form % (addr[0], addr[1])
-        server_table += """<tr>
+        thisForm = (
+            formTemplate if not data['password'] else protectedFormTemplate)
+        thisForm = thisForm % (addr[0], addr[1])
+        serverTable += """<tr>
                                <td class="text-center">
                                    %s
                                </td>
@@ -166,8 +166,8 @@ if len(servers) != 0:
                                    %s
                                </td>
                            </tr>
-                        """ % (addr[0], players, this_form)
-    server_table += '</tbody></table>'
+                        """ % (addr[0], players, thisForm)
+    serverTable += '</tbody></table>'
 if error != '':
     error = """<div class="alert alert-danger">
                    %s
@@ -196,13 +196,13 @@ print("""
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
         <title>Arena - Server List</title>
         <script>
-            var join_status;
-            var modal_shown = false;
+            var joinStatus;
+            var modalShown = false;
             $(document).ready(init);
 
             function init(){
-            join_status = $('#join_status');
-            join_status.on('hide.bs.modal', function(){modal_shown = false;});
+            joinStatus = $('#joinStatus');
+            joinStatus.on('hide.bs.modal', function(){modalShown = false;});
                 $("form").submit(function(e){
                     var target = $(e.target);
                     var username = target.find('.username').val();
@@ -221,7 +221,7 @@ print("""
                     }
                     var data = {
                         username: username,
-                        ip_address: target.find('.ip').val(),
+                        ipAddress: target.find('.ip').val(),
                         port: target.find('.port').val(),
                         password: password
                     }
@@ -240,11 +240,10 @@ print("""
                 message('Error - ' + xhr.responseText, 'danger');
             });
 
-            
             function message(msg, level){
-                if(!modal_shown){
-                    join_status.modal('show');
-                    modal_shown = true;
+                if(!modalShown){
+                    joinStatus.modal('show');
+                    modalShown = true;
                 }
                 $('.modal-title').html(msg);
             }
@@ -263,7 +262,7 @@ print("""
             class="glyphicon glyphicon-home"></span> Home</a>
         </div>
 
-        <div id="join_status" class="modal fade" role="dialog">
+        <div id="joinStatus" class="modal fade" role="dialog">
         <div class="modal-dialog">
             <!--Content-->
             <div class="modal-content">
@@ -277,4 +276,4 @@ print("""
         </div>
     </div>
     </body>
-</html>""" % (error, server_table))
+</html>""" % (error, serverTable))

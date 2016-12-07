@@ -23,16 +23,16 @@ try:
     cookie.load(environ['HTTP_COOKIE'])
 
     """/*
-        var: player_num
+        var: playerNum
         The index of this player in <Server.players>
     */"""
-    player_num = cookie.get('player_num').value
+    playerNum = cookie.get('playerNum').value
 
     """/*
-        var: ip_address, port
-        The ip_address and port number of the server
+        var: ipAddress, port
+        The ipAddress and port number of the server
     */"""
-    ip_address, port = cookie.get('game_address').value.split(':')
+    ipAddress, port = cookie.get('gameAddress').value.split(':')
 
     # Create the socket
 
@@ -41,8 +41,8 @@ try:
         <Socket> object used to connect to the server
     */"""
     sock = socket(AF_INET, SOCK_STREAM)
-    sock.connect((ip_address, int(port)))
-    msg = 'start=' + str(player_num)
+    sock.connect((ipAddress, int(port)))
+    msg = 'start=' + str(playerNum)
     # Game will only start if the host clicks button
     sock.sendall(msg.encode())
     response = loads(sock.recv(4096).decode())

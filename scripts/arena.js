@@ -1131,7 +1131,7 @@ handles updating data by sending and receiving from the <ArenaServer>
         height = canvas.height;
         width = canvas.width;
         displayRows = $('tbody tr');
-        server = 'http://' + getCookie('game_address');
+        server = 'http://' + getCookie('gameAddress');
 
         //Create obstacles
         createObstacles();
@@ -1143,11 +1143,10 @@ handles updating data by sending and receiving from the <ArenaServer>
             return 'Are you sure you want to leave?';
         };
         window.onunload = function(e){
-            var server_address = getCookie('game_address');
             $.ajax({
                 type: 'GET',
                 async: false,
-                url: 'http://' + server_address,
+                url: server,
                 data: 'quit=' + local
             });
         }
@@ -1291,7 +1290,7 @@ handles updating data by sending and receiving from the <ArenaServer>
             dataType : 'json',
             type: 'POST',
             data : {
-                startUp : getCookie('player_num')
+                startUp : getCookie('playerNum')
             },
             ifModified: 'true',
             success : function(json){
