@@ -13,17 +13,7 @@ class ArenaPanel(LabelFrame):
         Group: Constructors
     */"""
 
-class ArenaPanel(LabelFrame):
     """/*
-        Class: ArenaPanel
-        Abstract super class for all <Panel> objects to be used as children in
-        the <ArenaGUI>.
-
-        Provides an interface for panel specific methods, and some helper
-        methods
-
-        Group: Constructors
-
         Constructor: __init__
         Create the <Panel> and initialise any instance variables it may have
 
