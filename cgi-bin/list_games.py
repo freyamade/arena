@@ -63,33 +63,18 @@ formTemplate = """
 </form>"""
 
 """/*
-    var: protectedFormTemplate
-    An alternate version of <formTemplate> for use when passwords are needed
+    var: passwordForm
+    Form entry string to be used in the table if passwords are needed
 */"""
-protectedFormTemplate = """
-<form action="join_game.py" method="POST">
-    <div class="input-group">
-        <span class="input-group-addon">
-            Username
-        </span>
-        <input type="text" name="username" placeholder="Guest"
-        value="" class="form-control username" />
-    </div>
-    <div class="input-group">
-        <span class="input-group-addon">
-            Password
-        </span>
-        <input type="text" name="password"
-        value="" class="form-control password" />
-    </div>
-    <button class="btn btn-primary" type="submit">
-        <span class="glyphicon glyphicon-share-alt"></span>
-         Join Game
-    </button>
-
-    <input type="hidden" class="ip" name="ipAddress" value="%s" />
-    <input type="hidden" class="port" name="port" value="%s" />
-</form>"""
+passwordForm = """
+<div class="input-group">
+    <span class="input-group-addon">
+        Password
+    </span>
+    <input type="text" name="password"
+    value="" class="form-control password" />
+</div>
+"""
 
 """/*
     var: error
@@ -114,7 +99,8 @@ try:
         try:
             data, address = sock.recvfrom(1024)
             data = loads(data.decode())
-            servers[tuple(data['address'])] = data['data']
+            server_address = address[0], data['port']
+            servers[server_address] = data['data']
         except timeout:
             timeouts -= 1
 except Exception as e:
@@ -125,10 +111,10 @@ if len(servers) != 0:
                           <thead>
                               <tr>
                                   <th class="text-center col-sm-4">
-                                      Address
+                                      Players
                                   </th>
                                   <th class="text-center col-sm-4">
-                                      Players
+                                      Password
                                   </th>
                                   <th class="text-center col-sm-4">
                                       Join
@@ -143,7 +129,7 @@ if len(servers) != 0:
                        if player is not None]
         players = ''
         if len(playerData) > 0:
-            players = '<ol>'
+            players = '<ol class="list-inline">'
             for player in playerData:
                 players += """<li style="color: %s;">
                                   %s
@@ -152,9 +138,8 @@ if len(servers) != 0:
             players += '</ol>'
         else:
             players = 'No Players in Lobby'
-        thisForm = (
-            formTemplate if not data['password'] else protectedFormTemplate)
-        thisForm = thisForm % (addr[0], addr[1])
+        thisForm = formTemplate % (addr[0], addr[1])
+        password = 'None' if not data['password'] else passwordForm
         serverTable += """<tr>
                                <td class="text-center">
                                    %s
@@ -166,7 +151,7 @@ if len(servers) != 0:
                                    %s
                                </td>
                            </tr>
-                        """ % (addr[0], players, thisForm)
+                        """ % (players, password, thisForm)
     serverTable += '</tbody></table>'
 if error != '':
     error = """<div class="alert alert-danger">
@@ -209,7 +194,8 @@ print("""
                     if(username === ''){
                         username = 'Guest';
                     }
-                    var password = target.find('.password');
+                    // Password is now in the parent
+                    var password = target.parent().parent().find('.password');
                     if(password.length === 0){
                         password = 'None';
                     }
@@ -225,6 +211,7 @@ print("""
                         port: target.find('.port').val(),
                         password: password
                     }
+                    console.log(data);
                     $.post('join_game.py', data);
                     e.preventDefault();
                 });
@@ -266,7 +253,7 @@ print("""
         <div class="modal-dialog">
             <!--Content-->
             <div class="modal-content">
-                <div class="modal-header">
+                <div class="modal-body">
                     <button type="button" class="close" data-dismiss="modal">
                         &times;
                     </button>
