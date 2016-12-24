@@ -85,7 +85,7 @@ class ArenaGUI(Tk):
     def _initialiseServerPanel(self):
         self._gameServerPanel = GameServerPanel(
             self, "Status Controls", 300,
-            650, logMessage=self._logPanel.logMessage)
+            325, logMessage=self._logPanel.logMessage)
         self._gameServerPanel.pack(side=LEFT, expand=1, fill=BOTH)
 
     """/*

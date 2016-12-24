@@ -26,9 +26,6 @@
             Also handles the display of progress towards the release.
         */
 
-        // obj: join_status
-        // Pointer to the label element in the form to display any errors
-        var join_status;
         $(document).ready(init);
 
         /*
@@ -36,55 +33,8 @@
             Initialises variables, sets up event listeners
         */
         function init(){
-            join_status = $('#join_status');
-            $("#join_form").submit(function(e){
-                var username = $('#username').val();
-                if(username === ''){
-                    username = 'Guest';
-                }
-                var password = $('#password');
-                    if(password.length === 0){
-                        password = 'None';
-                    }
-                    else{
-                        password = password.val();
-                        if(password === ''){
-                            password = 'None';
-                        }
-                    }
-                var data = {
-                    username: username,
-                    ip_address: $('#ip').val(),
-                    port: $('#port').val(),
-                    password: password
-                }
-                $.post('cgi-bin/join_game.py', data, function(){
-                    window.location = 'cgi-bin/lobby.py';
-                });
-                message('Loading', 'info');
-                e.preventDefault();
-            });
-
             //Handle getting the progress
-            $.getJSON('https://api.github.com/repos/ExceptionalVoid/Arena/milestones/1', milestoneProgress);
-        }
-
-        $(document).ajaxError(function(e, xhr){
-            message('Error - ' + xhr.responseText, 'danger');
-        });
-
-        /*
-            Function: message
-            Display a message in the modal depending on the state of the AJAX request
-
-            Parameters:
-                string msg - The message to be displayed
-                string level - The level (info, error) of the message
-        */
-        function message(msg, level){
-            join_status.removeClass();
-            join_status.addClass('label label-' + level);
-            join_status.html(msg);
+            $.getJSON('https://api.github.com/repos/ExceptionalVoid/Arena/milestones/2', milestoneProgress);
         }
 
         /*
@@ -111,24 +61,22 @@
             <img src="images/logo.png" class="img-thumbnail img-responsive" />
             <h1 class="page-heading">Welcome to the Arena</h1>
         </div>
-        <h1 class="page-heading"><small>v1 Beta Progress</small></h1>
+        <h1 class="page-heading"><small>v2 Beta Progress</small></h1>
         <div class="progress">
           <div class="progress-bar progress-bar-success" role="progressbar" aria-valuemin="0" aria-valuemax="100">
             <span id="progress_text"></span>%
           </div>
         </div>
-        <a href="https://github.com/CompSci2k18/Arena/milestone/1" target="_blank" class="btn btn-info"><img src="images/gh.png" alt="GitHub logo" width="20" height="20" /> Milestone on GitHub</a>
+        <a href="https://github.com/ExceptionalVoid/Arena/milestone/2" target="_blank" class="btn btn-info"><img src="images/gh.png" alt="GitHub logo" width="20" height="20" /> Milestone on GitHub</a>
         <hr />
         <div class="btn-group hidden-xs">
             <button class="btn btn-primary" data-toggle="modal" data-target="#howto"><span class="glyphicon glyphicon-question-sign"></span> How to Play</button>
-            <button class="btn btn-primary" data-toggle="modal" data-target="#join_game"><span class="glyphicon glyphicon-share-alt"></span> Join By IP</button>
-            <a class="btn btn-primary" href="cgi-bin/list_games.py"><span class="glyphicon glyphicon-list-alt"></span> List Public Servers</a>
+            <a class="btn btn-primary" href="cgi-bin/list_games.py"><span class="glyphicon glyphicon-list-alt"></span> List Servers</a>
             <a class="btn btn-primary" href="cgi-bin/game_stats.py"><span class="glyphicon glyphicon-stats"></span> Game Stats</a>
         </div>
         <div class="btn-group-vertical visible-xs">
             <button class="btn btn-primary" data-toggle="modal" data-target="#howto"><span class="glyphicon glyphicon-question-sign"></span> How to Play</button>
-            <button class="btn btn-primary" data-toggle="modal" data-target="#join_game"><span class="glyphicon glyphicon-share-alt"></span> Join By IP</button>
-            <a class="btn btn-primary" href="cgi-bin/list_games.py"><span class="glyphicon glyphicon-list-alt"></span> List Public Servers</a>
+            <a class="btn btn-primary" href="cgi-bin/list_games.py"><span class="glyphicon glyphicon-list-alt"></span> List Servers</a>
             <a class="btn btn-primary" href="cgi-bin/game_stats.py"><span class="glyphicon glyphicon-stats"></span> Game Stats</a>
         </div>
         <hr />
@@ -140,8 +88,17 @@
             </div>
             <div class="panel-body">
                 <article>
-                    <h3>Beta development <small>24/Oct/2016</small></h3>
-                    <p>Currently, this game is in the alpha state of version 1.0.
+                    <h3>Beta 2 <small>10/Nov/2016</small></h3>
+                    <p>
+                        Today, we released a terrible beta version of the Arena at our first Computer Science LAN Party.
+                        A good few issues were discovered however, and we know the game is far from complete, so stay tuned :)
+                    </p>
+                </article>
+                <hr />
+                <article>
+                    <h3>Beta Development <small>24/Oct/2016</small></h3>
+                    <p>
+                        Currently, this game is in the alpha state of version 1.0.
                         We are working hard at fixing all the issues the game currently
                         has in order to get a beta out to you. Thank you for your
                         patience :)
@@ -152,42 +109,6 @@
     </div>
 
     <!--Modals-->
-    <div id="join_game" class="modal fade" role="dialog">
-        <div class="modal-dialog">
-            <!--Content-->
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title">
-                        Join Game
-                    </h4>
-                    <div id="join_status"></div>
-                </div>
-                <div class="modal-body">
-                    <form id="join_form" action="" method="POST">
-                        <div class="form-group">
-                            <label for="username">Username</label>
-                            <input type="text" id="username" name="username" placeholder="Guest" value="" class="form-control" />
-                        </div>
-                        <div class="form-group">
-                            <label for="ip">IP Address</label>
-                            <input id="ip" type="text" name="ip_address" required value="" class="form-control" />
-                        </div>
-                        <div class="form-group">
-                            <label for="port">Port Number</label>
-                            <input id="port" type="text" name="port" value="44444" required class="form-control" />
-                        </div>
-                        <div class="form-group">
-                            <label for="password">Password (optional)</label>
-                            <input id="password" type="text" name="password" value="" class="form-control" />
-                        </div>
-                        <button type="button" class="btn btn-danger" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span> Cancel</button>
-                        <button type="submit" class="btn btn-primary pull-right"><span class="glyphicon glyphicon-share-alt"></span> Join Game</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <div id="howto" class="modal fade" role="dialog">
         <div class="modal-dialog">
             <!--Content-->
@@ -199,7 +120,7 @@
                     </h4>
                 </div>
                 <div class="modal-body">
-                    <p>Use <kbd>W, A, S, D</kbd> or <kbd>&uarr;, &larr;, &rarr; &darr;</kbd> to move.</p>
+                    <p>Use <kbd>W</kbd>, <kbd>A</kbd>, <kbd>S</kbd>, <kbd>D</kbd> or <kbd>&uarr;</kbd>, <kbd>&larr;</kbd>, <kbd>&rarr;</kbd>, <kbd>&darr;</kbd> to move.</p>
                     <p>Use the mouse to aim and click to fire</p>
                     <p>Reduce all other players' health to 0 to win</p>
                 </div>
