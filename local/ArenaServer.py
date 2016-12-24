@@ -100,7 +100,7 @@ class ArenaServer:
 
         sock = socket(AF_INET, SOCK_STREAM)
         sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
-        sock.bind((self.host, self.port))
+        sock.bind(('', self.port))
 
         """/*
             var: sock
