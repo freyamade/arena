@@ -26,9 +26,6 @@
             Also handles the display of progress towards the release.
         */
 
-        // obj: join_status
-        // Pointer to the label element in the form to display any errors
-        var join_status;
         $(document).ready(init);
 
         /*
@@ -112,42 +109,6 @@
     </div>
 
     <!--Modals-->
-    <div id="join_game" class="modal fade" role="dialog">
-        <div class="modal-dialog">
-            <!--Content-->
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title">
-                        Join Game
-                    </h4>
-                    <div id="join_status"></div>
-                </div>
-                <div class="modal-body">
-                    <form id="join_form" action="" method="POST">
-                        <div class="form-group">
-                            <label for="username">Username</label>
-                            <input type="text" id="username" name="username" placeholder="Guest" value="" class="form-control" />
-                        </div>
-                        <div class="form-group">
-                            <label for="ip">IP Address</label>
-                            <input id="ip" type="text" name="ip_address" required value="" class="form-control" />
-                        </div>
-                        <div class="form-group">
-                            <label for="port">Port Number</label>
-                            <input id="port" type="text" name="port" value="44444" required class="form-control" />
-                        </div>
-                        <div class="form-group">
-                            <label for="password">Password (optional)</label>
-                            <input id="password" type="text" name="password" value="" class="form-control" />
-                        </div>
-                        <button type="button" class="btn btn-danger" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span> Cancel</button>
-                        <button type="submit" class="btn btn-primary pull-right"><span class="glyphicon glyphicon-share-alt"></span> Join Game</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <div id="howto" class="modal fade" role="dialog">
         <div class="modal-dialog">
             <!--Content-->
@@ -159,7 +120,7 @@
                     </h4>
                 </div>
                 <div class="modal-body">
-                    <p>Use <kbd>W, A, S, D</kbd> or <kbd>&uarr;, &larr;, &rarr; &darr;</kbd> to move.</p>
+                    <p>Use <kbd>W</kbd>, <kbd>A</kbd>, <kbd>S</kbd>, <kbd>D</kbd> or <kbd>&uarr;</kbd>, <kbd>&larr;</kbd>, <kbd>&rarr;</kbd>, <kbd>&darr;</kbd> to move.</p>
                     <p>Use the mouse to aim and click to fire</p>
                     <p>Reduce all other players' health to 0 to win</p>
                 </div>
