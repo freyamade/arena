@@ -451,37 +451,8 @@ class ArenaServer:
             # Check the passwords against eachother
             if ((password == 'None' and not self.password) or
                     sha256(password.encode()).hexdigest() == self.password):
-                # Find the index for the player
-                player_index = -1
-                index_assigned = False
-                username_count = 0
-                for i in range(len(self.players)):
-                    player = self.players[i]
-                    if player is None and not index_assigned:
-                        player_index = i
-                        index_assigned = True
-                    elif player is not None and player['userName'] == username:
-                        username_count += 1
-                if username_count > 0:
-                    username += ' (%i)' % (username_count)
-                self.log(username + ' has joined the lobby!')
-                # Get the player coords
-                player_coords_index = choice(range(len(self.coords)))
-                player_coords = self.coords[player_coords_index]
-                self.coords.remove(player_coords)
-                # Create the player lobby object
-                player = {
-                    'x': player_coords[0],
-                    'y': player_coords[1],
-                    'userName': username,
-                    'colour': '#%s' % (self._generateColour()),
-                    'local': False,
-                    'queryTimeout': 20,
-                    'ready': False,
-                    'host': self.lobbySize == 0
-                }
-                self.lobbySize += 1
-                self.players[player_index] = player
+                # Add the player to the lobby
+                player_index = self._lobbyAddPlayer(username)
                 # Generate the token
                 token = sha256(
                     str(datetime.now()).encode()).hexdigest()
@@ -492,6 +463,50 @@ class ArenaServer:
                 client.sendall('incorrect'.encode())
         else:
             client.sendall('lobby full'.encode())
+
+    """/*
+        Function: _lobbyAddPlayer
+        Adds a new player to the lobby
+
+        Parameters:
+            string username - The username of the player that has joined
+
+        Returns:
+            int player_index - The index of the player in the array of players
+    */"""
+    def _lobbyAddPlayer(self, username):
+        # Find the index for the player
+        player_index = -1
+        index_assigned = False
+        username_count = 0
+        for i in range(len(self.players)):
+            player = self.players[i]
+            if player is None and not index_assigned:
+                player_index = i
+                index_assigned = True
+            elif player is not None and player['userName'] == username:
+                username_count += 1
+        if username_count > 0:
+            username += ' (%i)' % (username_count)
+        self.log(username + ' has joined the lobby!')
+        # Get the player coords
+        player_coords_index = choice(range(len(self.coords)))
+        player_coords = self.coords[player_coords_index]
+        self.coords.remove(player_coords)
+        # Create the player lobby object
+        player = {
+            'x': player_coords[0],
+            'y': player_coords[1],
+            'userName': username,
+            'colour': '#%s' % (self._generateColour()),
+            'local': False,
+            'queryTimeout': 20,
+            'ready': False,
+            'host': self.lobbySize == 0
+        }
+        self.lobbySize += 1
+        self.players[player_index] = player
+        return player_index
 
     """/*
         Function: _lobbyQuery
@@ -675,7 +690,6 @@ class ArenaServer:
         # Handles players arriving at the game screen
         # Loop through the list of players, setting flags
         player_num = int(unquote(msg.split('startUp=')[1]))
-        self.log(self.players[player_num]['userName'] + ' is ready')
         payload = []
         ready = True
         for i in range(len(self.players)):
@@ -794,7 +808,7 @@ class ArenaServer:
             "HTTP/1.1 200 OK\r\n",  # Do not remove
             "Content-Type: application/json\r\n",  # Do not remove
             # Optional Headers start here
-            "Access-Control-Allow-Origin: http://cs1.ucc.ie\r\n",
+            "Access-Control-Allow-Origin: *\r\n",
             # End optional headers
             "\r\n"  # Do not remove
         ]
