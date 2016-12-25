@@ -168,6 +168,18 @@ handles updating data by sending and receiving from the <ArenaServer>
     var ajaxInterval;
 
     /*
+        var: maxAjaxCrashes
+        The maximum number of consecutive crashes that are allowed to happen before the server is considered closed
+    */
+    var maxAjaxCrashes = 5;
+
+    /*
+        var: ajaxCrashes
+        The current number of consecutive crashes that are allowed
+    */
+    var ajaxCrashes = maxAjaxCrashes;
+
+    /*
         var: playersAlive
         The number of <Player>s who remain alive
     */
@@ -1178,7 +1190,7 @@ handles updating data by sending and receiving from the <ArenaServer>
     */
     function startGame(){
         //Run the ajax update every 16ms, just before the update method
-        // ajaxInterval = window.setInterval(updatePlayers, 16);
+        ajaxInterval = window.setInterval(updatePlayers, 16);
         updatePlayers(); //Will call itself after success, or after 1 second on failure
         //Run the countdown and then start the game
         updateInterval = setInterval(countdown, 1000);
@@ -1269,11 +1281,12 @@ handles updating data by sending and receiving from the <ArenaServer>
                     }
                 });
                 players[local].damagingBullets = [];
-                updatePlayers();
+                //Reset the number of allowed errors
+                ajaxCrashes = maxAjaxCrashes;
             },
             error: function(req, text){
                 checkIfServerCrashed(req);
-                updatePlayers();
+                console.log('error');
             }
         });
     }
@@ -1316,11 +1329,14 @@ handles updating data by sending and receiving from the <ArenaServer>
                 ready = json.ready;
                 //Update the displays with health and bullets
                 updateDisplays();
+
+                //Reset the allowed errors
+                ajaxCrashes = maxAjaxCrashes;
             },
             error: function(req, text){
                 console.log('setup ' + req.responseText);
                 console.log('setup ' + text);
-                // checkIfServerCrashed(req);
+                checkIfServerCrashed(req);
             }
         });
     }
@@ -1328,12 +1344,17 @@ handles updating data by sending and receiving from the <ArenaServer>
     /*
         Function: checkIfServerCrashed
         Checks if the server has crashed if an AJAX request fails
+        Allow a maximum number of crashes in a row before kicking player from game
 
         Parameters:
             jqXHR req - <jqXHR> object containing the response information
     */
     function checkIfServerCrashed(req){
         if (req.readyState < 4 || req.status >= 500){
+            ajaxCrashes -= 1;
+        }
+        // Now check if we have exceeded our allowance
+        if(ajaxCrashes <= 0){
             window.onbeforeunload = null;
             window.onunload = null;
             window.location = "../";
@@ -1489,6 +1510,7 @@ handles updating data by sending and receiving from the <ArenaServer>
         window.onbeforeunload = null;
         window.onunload = null;
         window.alert('Game Over! Winner: ' + player.userName);
+        window.location = '../';
     }
 
 }());

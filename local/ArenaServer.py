@@ -730,7 +730,7 @@ class ArenaServer:
         try:
             data = loads(unquote(msg.split('update=')[1]))
         except ValueError:
-            self.log('JSON error loading ' +  unquote(msg.split('update=')[1]))
+            self.log('JSON error loading ' + unquote(msg.split('update=')[1]))
         else:
             player = data['player']
             damages = data['damages']
