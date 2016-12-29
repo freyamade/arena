@@ -44,9 +44,9 @@ playerNum = -1
 
 """/*
     var: button
-    String storing a button element iff the player is the hose
+    String storing a button element
 */"""
-button = ''
+button = '<button class="btn btn-success" disabled id="startbtn"><span class="fa fa-check"></span> Start Game</button>'
 
 """/*
     var: cookie
@@ -65,8 +65,6 @@ try:
     cookie.load(environ['HTTP_COOKIE'])
     playerNum = int(cookie.get('playerNum').value)
     ipAddress, port = cookie.get('gameAddress').value.split(':')
-    if playerNum == 0:
-        button = '<button class="btn btn-success"><span class="glyphicon glyphicon-ok"></span> Start Game</button>'
 
     # Query the server for players
     sock = socket(AF_INET, SOCK_STREAM)
@@ -87,18 +85,35 @@ try:
         players = """<table class="table table-striped table-bordered">
                          <thead>
                              <tr>
-                                 <th class="text-center">
+                                <th class="text-center col-xs-2">
+                                    Host
+                                </th>
+                                 <th class="text-center col-xs-8">
                                      User Name
                                  </th>
+                                <th class="text-center col-xs-2">
+                                    You
+                                </th>
                              </tr>
                          </thead>
                          <tbody>"""
-        for player in data['players']:
-            players += """<tr style="color: %s;">
-                              <td class="text-center">
-                                  %s
-                              </td>
-                          </tr>""" % (player['colour'], player['userName'])
+        for i, player in enumerate(data['players']):
+            if player is not None:
+                players += """<tr style="color: %s;">
+                                  <td class="text-center">
+                                      <span class="fa fa-%s"></span>
+                                  </td>
+                                  <td class="text-center">
+                                      %s
+                                  </td>
+                                  <td class="text-center">
+                                      <span class="fa fa-%s"></span>
+                                  </td>
+                              </tr>""" % (
+                    player['colour'],
+                    'check' if player['host'] else 'times',
+                    player['userName'],
+                    'check' if i == playerNum else 'times')
         players += '</tbody></table>'
 
         print('Content-Type: text/html')
@@ -125,18 +140,26 @@ try:
                 <title>Arena - Lobby</title>
                 <script src="../scripts/lobby.js"></script>
                 <link rel='icon' href='../images/favicon.ico' type='image/x-icon' />
+                <!--Font Awesome-->
+                <script src="https://use.fontawesome.com/8ce091879b.js"></script>
             </head>
 
             <body>
                 <div class="container">
-                    <h1 class="page-heading">Lobby of %s</h1>
+                    <h1 class="page-heading">Your Lobby</h1>
                     %s
                     <br />
                     %s
+                    <a href="../" class="btn btn-danger"><span class="fa fa-home"></span> Home</a>
                 </div>
             </body>
-        </html>""" % (ipAddress, players, button))
-except:
+        </html>""" % (players, button))
+except Exception as e:
     # Redirect home
-    print('Status: 303')
-    print('Location: ../')
+    if format == 'json':
+        print('Status: 500')
+        print()
+    else:
+        print('Status: 303')
+        print('Location: ../?' + str(e))
+        print()

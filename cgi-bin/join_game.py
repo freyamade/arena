@@ -74,7 +74,7 @@ def newGame():
         elif 'incorrect' in response:
             error = 'Incorrect password for server'
         else:
-            error = 'Lobby Full'
+            error = response # 'Lobby Full'
         sock.close()
     except OSError as e:
         num = int(e.errno)
@@ -134,6 +134,6 @@ if len(data) > 0:
             print(cookie)
             print()
         else:
-            print('Status: 400')
+            print('Status: 200')
             print()
             print(error)

@@ -52,7 +52,7 @@ formTemplate = """
         value="" class="form-control username" />
         <span class="input-group-btn">
             <button class="btn btn-primary" type="submit">
-                <span class="glyphicon glyphicon-share-alt"></span>
+                <span class="fa fa-share"></span>
                  Join Game
             </button>
         </span>
@@ -88,7 +88,7 @@ error = ''
     A string containing the table of the servers and their data
 */"""
 serverTable = """<div class="alert alert-info">
-                      <strong>No Servers Found</strong>
+                      <strong>No Games Found</strong>
                   </div>"""
 
 try:
@@ -126,7 +126,7 @@ if len(servers) != 0:
     for addr in servers:
         data = servers[addr]
         playerData = [player for player in data['players']
-                       if player is not None]
+                      if player is not None]
         players = ''
         if len(playerData) > 0:
             players = '<ol class="list-inline">'
@@ -220,6 +220,7 @@ print("""
             $(document).ajaxSuccess(function(e, xhr){
                 //Redirect to lobby.py
                 //Might have to fix things to make cookies work
+                console.log(xhr.responseText);
                 window.location = 'lobby.py';
             });
 
@@ -236,17 +237,19 @@ print("""
             }
         </script>
         <link rel='icon' href='../images/favicon.ico' type='image/x-icon' />
+        <!--Font Awesome-->
+        <script src="https://use.fontawesome.com/8ce091879b.js"></script>
     </head>
 
     <body>
         <div class="container">
             <h1 class="page-heading">
-                Open Public Servers
+                Open Games
             </h1>
             %s
             %s
             <a href=".." class="btn btn-primary"><span
-            class="glyphicon glyphicon-home"></span> Home</a>
+            class="fa fa-home"></span> Home</a>
         </div>
 
         <div id="joinStatus" class="modal fade" role="dialog">
