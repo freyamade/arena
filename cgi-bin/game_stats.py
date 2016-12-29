@@ -35,7 +35,7 @@ if os.path.exists('../stats'):
             files += """<tr><td class="text-center">%s</td>
             <td class="text-center">
             <button class="btn btn-primary btn-xs" data-id="%s">
-            <span class="glyphicon glyphicon-file"></span> View Stats
+            <span class="fa fa-file-text-o"></span> View Stats
             </button></td></tr>""" % (datetime.strptime(
             filename, '%d%m%Y%H%M%S').strftime('%d/%m/%Y @ %H:%M:%S'),
             filename)
@@ -62,17 +62,19 @@ print("""
 
         <!-- Latest compiled and minified JavaScript -->
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
-        <title>Arena - Stats</title>
+        <title>Arena - Results</title>
         <link rel='icon' href='../images/favicon.ico' type='image/x-icon' />
         <script src="../scripts/game_stats.js"></script>
+        <!--Font Awesome-->
+        <script src="https://use.fontawesome.com/8ce091879b.js"></script>
     </head>
 
     <body>
         <div class="container">
-            <h1 class="page-heading">Last Game Stats</h1>
+            <h1 class="page-heading">Results</h1>
             %s
-            <a class="btn btn-primary" href="../index.html">
-                <span class="glyphicon glyphicon-home"></span> 
+            <a class="btn btn-primary" href="../">
+                <span class="fa fa-home"></span> 
                 Home
             </a>
         </div>

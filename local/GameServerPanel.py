@@ -90,10 +90,10 @@ class GameServerPanel(ArenaPanel):
         runPanel = Frame(self)
         self._statusLabel = Label(
             runPanel, textvariable=self._status, foreground="red")
-        self._statusLabel.pack(side=LEFT, fill=BOTH, expand=1)
+        self._statusLabel.pack(side=TOP, fill=BOTH, expand=1)
         runButton = Button(
             runPanel, textvariable=self._buttonLabel, command=self._toggle)
-        runButton.pack(side=LEFT, fill=BOTH, expand=1)
+        runButton.pack(side=TOP, fill=BOTH, expand=1)
         runPanel.pack(fill=BOTH, expand=1)
 
         # Display a welcome message

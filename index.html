@@ -53,6 +53,11 @@
         }
 
     </script>
+
+    <!--Font Awesome-->
+    <script src="https://use.fontawesome.com/8ce091879b.js"></script>
+
+    <!--Favicon-->
     <link rel='icon' href='images/favicon.ico' type='image/x-icon' />
 </head>
 <body>
@@ -61,51 +66,46 @@
             <img src="images/logo.png" class="img-thumbnail img-responsive" />
             <h1 class="page-heading">Welcome to the Arena</h1>
         </div>
-        <h1 class="page-heading"><small>v2 Beta Progress</small></h1>
+        <h1 class="page-heading"><small>v2 Beta Issues Solved</small></h1>
         <div class="progress">
           <div class="progress-bar progress-bar-success" role="progressbar" aria-valuemin="0" aria-valuemax="100">
             <span id="progress_text"></span>%
           </div>
         </div>
-        <a href="https://github.com/ExceptionalVoid/Arena/milestone/2" target="_blank" class="btn btn-info"><img src="images/gh.png" alt="GitHub logo" width="20" height="20" /> Milestone on GitHub</a>
+        <a href="https://github.com/ExceptionalVoid/Arena/milestone/2" target="_blank" class="btn btn-info"><span class="fa fa-github"></span> Milestone on GitHub</a>
         <hr />
-        <div class="btn-group hidden-xs">
-            <button class="btn btn-primary" data-toggle="modal" data-target="#howto"><span class="glyphicon glyphicon-question-sign"></span> How to Play</button>
-            <a class="btn btn-primary" href="cgi-bin/list_games.py"><span class="glyphicon glyphicon-list-alt"></span> List Servers</a>
-            <a class="btn btn-primary" href="cgi-bin/game_stats.py"><span class="glyphicon glyphicon-stats"></span> Game Stats</a>
-        </div>
-        <div class="btn-group-vertical visible-xs">
-            <button class="btn btn-primary" data-toggle="modal" data-target="#howto"><span class="glyphicon glyphicon-question-sign"></span> How to Play</button>
-            <a class="btn btn-primary" href="cgi-bin/list_games.py"><span class="glyphicon glyphicon-list-alt"></span> List Servers</a>
-            <a class="btn btn-primary" href="cgi-bin/game_stats.py"><span class="glyphicon glyphicon-stats"></span> Game Stats</a>
+        <h1 class="page-heading"><small>The Game</small></h1>
+        <div class="btn-group">
+            <button class="btn btn-primary" data-toggle="modal" data-target="#howto"><span class="fa fa-question"></span> How to Play</button>
+            <a class="btn btn-primary" href="cgi-bin/list_games.py"><span class="fa fa-gamepad"></span> List Games</a>
+            <a class="btn btn-primary" href="cgi-bin/game_stats.py"><span class="fa fa-book"></span> Results</a>
         </div>
         <hr />
         <!--News can go here-->
         <!--Maybe set this up as a php script to pull news from a db later?-->
-        <section id="news" class="panel panel-info">
-            <div class="panel-heading">
-                <h2>News</h2>
+        <h1 class="page-heading"><small>News</small></h1>
+        <div class="panel-group">
+            <div class="panel panel-success">
+                <div class="panel-heading">
+                    Beta 2 <span class="pull-right">10/Nov/2016</span>
+                </div>
+                <div class="panel-body">
+                    Today, we released a terrible beta version of the Arena at our first Computer Science LAN Party.
+                    A good few issues were discovered however, and we know the game is far from complete, so stay tuned :)
+                </div>
             </div>
-            <div class="panel-body">
-                <article>
-                    <h3>Beta 2 <small>10/Nov/2016</small></h3>
-                    <p>
-                        Today, we released a terrible beta version of the Arena at our first Computer Science LAN Party.
-                        A good few issues were discovered however, and we know the game is far from complete, so stay tuned :)
-                    </p>
-                </article>
-                <hr />
-                <article>
-                    <h3>Beta Development <small>24/Oct/2016</small></h3>
-                    <p>
-                        Currently, this game is in the alpha state of version 1.0.
-                        We are working hard at fixing all the issues the game currently
-                        has in order to get a beta out to you. Thank you for your
-                        patience :)
-                    </p>
-                </article>
+            <div class="panel panel-success">
+                <div class="panel-heading">
+                    Beta Development <span class="pull-right">24/Oct/2016</span>
+                </div>
+                <div class="panel-body">
+                    Currently, this game is in the alpha state of version 1.0.
+                    We are working hard at fixing all the issues the game currently
+                    has in order to get a beta out to you. Thank you for your
+                    patience :)
+                </div>
             </div>
-        </section>
+        </div>
     </div>
 
     <!--Modals-->
@@ -129,6 +129,6 @@
     </div>
 
     <footer class="container footer">
-        <p class="text-muted">All icons from <a href="http://glyphicons.com/">Glyphicons</a></p>
+        <p class="text-muted">All icons from <a href="http://fontawesome.io/">FontAwesome</a></p>
     </footer>
 </body>

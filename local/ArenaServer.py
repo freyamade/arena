@@ -568,11 +568,11 @@ class ArenaServer:
     def _lobbyQuery(self, client, address, msg):
         # Handles queries against lobby
         player_num = int(msg.split('=')[1])
-        self.playerStatus[player_num] = True
-        client.sendall(dumps(
-            {'players':
-             [p for p in self.players if p is not None],
-             'started': self.hostStart}).encode())
+        if self.players[player_num] is not None:
+            self.playerStatus[player_num] = True
+            client.sendall(dumps(
+                {'players': self.players,
+                 'started': self.hostStart}).encode())
 
     """/*
         Function: _lobbyGetToken
@@ -617,21 +617,25 @@ class ArenaServer:
     def _lobbyQuit(self, client, address, msg):
         # Handles players leaving the lobby
         playerNum = int(msg.split("=")[1].split()[0])
-        if self.players[playerNum]["host"]:
-            for p in self.players:
-                if p and p != self.players[playerNum]:
-                    p["host"] = True
-                    break
-        username = self.players[playerNum]['userName']
-        self.log(username + ' has left the game')
-        self.players[playerNum] = None
-        self.lobbySize -= 1
+        if self.players[playerNum] != None:
+            if self.players[playerNum]["host"]:
+                for p in self.players:
+                    if p and p != self.players[playerNum]:
+                        p["host"] = True
+                        break
+            username = self.players[playerNum]['userName']
+            self.log(username + ' has left the game')
+            self.lobbySize -= 1
+            self.coords.append(
+                (self.players[playerNum]['x'], self.players[playerNum]['y']))
+            self.tokens.pop(username, None)
 
-        # Remove the entry from the timeouts dict for this key
-        self.playerStatus.pop(playerNum, None)
+            # Remove the entry from the timeouts dict for this key
+            self.playerStatus.pop(playerNum, None)
 
-        # Remove the entry from the canStartUp dict
-        self.canStartUp.pop(username, None)
+            # Remove the entry from the canStartUp dict
+            self.canStartUp.pop(username, None)
+            self.players[playerNum] = None
 
     """/*
         Function: _lobbyStart
@@ -962,7 +966,7 @@ class ArenaServer:
                     if not self.started:
                         # Game is in lobby state
                         self.coords.append((player['x'], player['y']))
-                        self.players[i] = None
+                        self.players[playerNum] = None
                         self.lobbySize -= 1
                         self.tokens.pop(player['userName'], None)
                     elif not self.gameOver:

@@ -13,6 +13,12 @@
     */
     var players;
 
+    /*
+        var: playerNum
+        The value of the cookie data representing this player's index in the list of players
+    */
+    var playerNum;
+
     window.addEventListener('DOMContentLoaded', init, false);
 
     /*
@@ -27,11 +33,9 @@
         Creates an <Interval> to check for updates every second
     */
     function init(){
+        playerNum = parseInt(getCookie('playerNum'));
         players = document.querySelector('table tbody');
-        var buttons = document.querySelectorAll('button');
-        for(var i = 0; i < buttons.length; i++){
-            buttons[i].addEventListener('click', startGame, false);
-        }
+        document.querySelector('#startbtn').addEventListener('click', startGame, false);
 
         //Check for updates every second
         window.setInterval(checkUpdates, 1000);
@@ -60,7 +64,6 @@
         If the host has started the game, run <startGame>.
     */
     function checkUpdates(){
-        var playerNum = getCookie('playerNum');
         $.ajax({
                 url: 'lobby.py?format=json',
                 dataType: 'json',
@@ -72,20 +75,33 @@
                     if(!json.started){
                         //Since it only succeeds if modified, just remove and redraw every row in the table any time things change
                         $(players).empty();
-                        // $('button').prop('disabled', true);
+                        var numPlayers = 0;
+                        $('#startbtn').prop('disabled', true);
                         json.players.forEach(function(player, index){
-                            if(index > 0){
-                                $('button').prop('disabled', false);
+                            if(player !== null){
+                                numPlayers ++;
+                                var hostIcon = 'times';
+                                var youIcon = 'times';
+                                if(playerNum === index){
+                                    youIcon = 'check';
+                                }
+                                if(player.host){
+                                    hostIcon = 'check';
+                                }
+                                $(players).append('<tr style="color: ' + player.colour + ';"><td class="text-center col-xs-2"><span class="fa fa-' + hostIcon + '"></span></td><td class="text-center col-xs-8">' + player.userName + '</td><td class="text-center col-xs-2"><span class="fa fa-' + youIcon + '"></span></td></tr>');
                             }
-                            $(players).append('<tr style="color: ' + player.colour + ';"><td class="text-center">' + player.userName + '</td></tr>');
                         });
+                        if(numPlayers > 1 && json.players[playerNum].host){
+                            $('#startbtn').prop('disabled', false);
+                        }
                     }
                     else{
                         //Other players get an onclick
                         startGame();
                     }
                 },
-                error : function(req,error){
+                error : function(req, error){
+                    console.log(req.responseText);
                     checkIfServerCrashed(req);
                 }
             }
@@ -110,8 +126,8 @@
                 }
             },
             error: function(req, error){
-                checkIfServerCrashed(req);
                 console.log(">>start_game_error: " + req.responseText);
+                checkIfServerCrashed(req);
             }
         });
     }
