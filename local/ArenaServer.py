@@ -793,7 +793,7 @@ class ArenaServer:
             # Update the player's status
             # Get the index of this player in the players list
             for i, lobbyPlayer in enumerate(self.players):
-                if (player is not None and
+                if (lobbyPlayer is not None and
                         player['userName'] == lobbyPlayer['userName']):
                     self.playerStatus[i] = True
                     break
