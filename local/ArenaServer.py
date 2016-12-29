@@ -5,7 +5,7 @@ import os
 from random import choice
 from select import select
 from socket import *
-from threading import Thread
+from threading import Thread, Timer
 from urllib.request import unquote
 
 """/*
@@ -155,6 +155,14 @@ class ArenaServer:
         self.closing = False
 
         """/*
+            var: canStartUp
+            Dict of player's usernames to a flag stating whether they can
+            run the start up method. This will be true until the player runs
+            the update method
+        */"""
+        self.canStartUp = {}
+
+        """/*
             Group: Stats Variables
                 Variables for maintaining data used by <_generateStatsFile>
                 once the game is over
@@ -194,6 +202,19 @@ class ArenaServer:
             Dict of usernames against their tokens
         */"""
         self.tokens = {}
+
+        """/*
+            var: playerStatus
+            Dict of indices against a flag indicating whether the player is
+            still in game.
+            The flags will be set to True in the gameUpdate and lobbyQuery
+            functions, and set to false in the checkTimeout function
+
+            Note:
+                Uses the indices in self.players, meaning the indices in
+                self.playerObjects may not work
+        */"""
+        self.playerStatus = {}
 
         width = height = 650
 
@@ -248,6 +269,13 @@ class ArenaServer:
         */"""
         self.callback = callback
 
+        """/*
+            var: timeoutTimer
+            Pointer to a Timer object that controls the periodic timeout
+            checking
+        */"""
+        self.timeoutTimer = Timer(5, self._checkTimeouts)
+
     """/*
         Group: Server Handler Methods
         Handlers for running and closing of the server
@@ -290,6 +318,9 @@ class ArenaServer:
 
         # Run the broadcast
         self._broadcast()
+
+        # Start the timeout checking
+        self.timeoutTimer.start()
         # Lobby loop
         try:
             while not self.started:
@@ -305,9 +336,16 @@ class ArenaServer:
             # End the broadcast as it's not needed
             self._endBroadcast()
 
+            # Cancel the timer
+            self.timeoutTimer.cancel()
+
             if not self.closed:
                 self.log('Game Starting')
                 self.startTime = datetime.now()
+
+                # Start a new timer
+                self.timeoutTimer = Timer(5, self._checkTimeouts)
+                self.timeoutTimer.start()
                 while not self.gameOver:
                     connections, wlist, xlist = select(
                         [self.sock], [], [], 0.05)
@@ -321,6 +359,7 @@ class ArenaServer:
                 # Build the stats file. Name of the file will just be constant,
                 # server remembers only the latest game for now
                 self._generateStatsFile(datetime.now())
+            self.timeoutTimer.cancel()
         except Exception as e:
             self.log(str(e))
         finally:
@@ -390,8 +429,8 @@ class ArenaServer:
 
     """/*
         Function: _handleLobbyConnection
-        Method run in a separate thread to handle requests while the game is still
-        in the lobby state
+        Method run in a separate thread to handle requests while the game is
+        still in the lobby state
 
         Parameters:
             Socket client - The <Socket> to send response through
@@ -500,12 +539,13 @@ class ArenaServer:
             'userName': username,
             'colour': '#%s' % (self._generateColour()),
             'local': False,
-            'queryTimeout': 20,
             'ready': False,
             'host': self.lobbySize == 0
         }
         self.lobbySize += 1
         self.players[player_index] = player
+        self.playerStatus[player_index] = True
+        self.canStartUp[username] = True
         return player_index
 
     """/*
@@ -528,16 +568,7 @@ class ArenaServer:
     def _lobbyQuery(self, client, address, msg):
         # Handles queries against lobby
         player_num = int(msg.split('=')[1])
-        self.players[player_num]['queryTimeout'] = 21
-        for i in range(len(self.players)):
-            player = self.players[i]
-            if player is not None:
-                player['queryTimeout'] -= 1
-                if player['queryTimeout'] <= 0:
-                    self.coords.append((player['x'], player['y']))
-                    self.players[i] = None
-                    self.lobbySize -= 1
-                    self.tokens.pop(player['userName'], None)
+        self.playerStatus[player_num] = True
         client.sendall(dumps(
             {'players':
              [p for p in self.players if p is not None],
@@ -585,15 +616,22 @@ class ArenaServer:
     */"""
     def _lobbyQuit(self, client, address, msg):
         # Handles players leaving the lobby
-        player_num = int(msg.split("=")[1].split()[0])
-        if self.players[player_num]["host"]:
+        playerNum = int(msg.split("=")[1].split()[0])
+        if self.players[playerNum]["host"]:
             for p in self.players:
-                if p and p != self.players[player_num]:
+                if p and p != self.players[playerNum]:
                     p["host"] = True
                     break
-        self.log(self.players[player_num]['userName'] + ' has left the game')
-        self.players[player_num] = None
+        username = self.players[playerNum]['userName']
+        self.log(username + ' has left the game')
+        self.players[playerNum] = None
         self.lobbySize -= 1
+
+        # Remove the entry from the timeouts dict for this key
+        self.playerStatus.pop(playerNum, None)
+
+        # Remove the entry from the canStartUp dict
+        self.canStartUp.pop(username, None)
 
     """/*
         Function: _lobbyStart
@@ -689,25 +727,29 @@ class ArenaServer:
     def _gameStartUp(self, client, address, msg):
         # Handles players arriving at the game screen
         # Loop through the list of players, setting flags
+        # Only runs if canStartUp is True for the player's username
         player_num = int(unquote(msg.split('startUp=')[1]))
-        payload = []
-        ready = True
-        for i in range(len(self.players)):
-            player = self.players[i]
-            if player is not None:
-                if i == player_num:
-                    player['local'] = True
-                    player['ready'] = True
-                else:
-                    player['local'] = False
-                # Prepare self.damages
-                if i not in self.damages:
-                    self.damages[i] = []
-                ready = ready and player['ready']
-                payload.append(player)
-        # Send the payload containing only the active players
-        data = {'players': payload, 'ready': ready}
-        client.sendall(self._generateHttpResponse(dumps(data)))
+        # Check that this player can start up
+        username = self.players[player_num]['userName']
+        if self.canStartUp.get(username, False):
+            payload = []
+            ready = True
+            for i in range(len(self.players)):
+                player = self.players[i]
+                if player is not None:
+                    if i == player_num:
+                        player['local'] = True
+                        player['ready'] = True
+                    else:
+                        player['local'] = False
+                    # Prepare self.damages
+                    if i not in self.damages:
+                        self.damages[i] = []
+                    ready = ready and player['ready']
+                    payload.append(player)
+            # Send the payload containing only the active players
+            data = {'players': payload, 'ready': ready}
+            client.sendall(self._generateHttpResponse(dumps(data)))
 
     """/*
         Function: _gameUpdate
@@ -726,7 +768,7 @@ class ArenaServer:
     */"""
     def _gameUpdate(self, client, address, msg):
         # Handles game updates on the server
-        # MUST BE AS EFFICIENT AS POSSIBLE
+        # Set the ability to start up to False to prevent reload respawns
         try:
             data = loads(unquote(msg.split('update=')[1]))
         except ValueError:
@@ -746,6 +788,15 @@ class ArenaServer:
                     'damages': self.damages[player['id']]}
             client.sendall(self._generateHttpResponse(dumps(data)))
             self.damages[player['id']] = []
+            # Set the player's startUp value to False
+            self.canStartUp[player['userName']] = False
+            # Update the player's status
+            # Get the index of this player in the players list
+            for i, lobbyPlayer in enumerate(self.players):
+                if (lobbyPlayer is not None and
+                        player['userName'] == lobbyPlayer['userName']):
+                    self.playerStatus[i] = True
+                    break
 
     """/*
         Function: _gameQuit
@@ -762,11 +813,14 @@ class ArenaServer:
     */"""
     def _gameQuit(self, client, address, msg):
         # Handles players leaving the lobby
-        player_num = int(msg.split("=")[1].split()[0])
-        #self.log(self.players[player_num]['userName'] + ' has left the game')
-        self.playerObjects[player_num]["health"] = 0
-        self.playerObjects[player_num]["bullets"] = []
-        self.playerObjects[player_num]["alive"] = False
+        playerNum = int(msg.split("=")[1].split()[0])
+        # self.log(self.players[playerNum]['userName'] + ' has left the game')
+        self.playerObjects[playerNum]["health"] = 0
+        self.playerObjects[playerNum]["bullets"] = []
+        self.playerObjects[playerNum]["alive"] = False
+
+        # Remove the entry from the timeouts dict for this key
+        self.playerStatus.pop(playerNum, None)
 
     """/*
         Function: _gameOver
@@ -876,3 +930,59 @@ class ArenaServer:
         statsfile.write(dumps(data))
         statsfile.close()
         os.chmod(filename, 0o666)
+
+    """/*
+        Group: Timeout Control Methods
+        Methods that help in the control of player timeouts in both the lobby
+        and the game itself
+    */"""
+
+    """/*
+        Function: _checkTimeouts
+        Loops through the playerStatus dict, checking each flag.
+        If the flag is True it is set to False, if it is False that player is
+        removed from the game
+
+        Note:
+            This function is called every 10 seconds
+    */"""
+    def _checkTimeouts(self):
+        removedPlayers = []
+        # There is a chance that because this is threaded people can leave as
+        # this method is running so we wrap in a try block.
+        # It's unlikely but it's a just in case measure
+        try:
+            for playerNum in self.playerStatus:
+                if self.playerStatus[playerNum]:
+                    self.playerStatus[playerNum] = False
+                else:
+                    # Remove the player from the lobby or game depending on the
+                    # state of the server at this time
+                    player = self.players[playerNum]
+                    if not self.started:
+                        # Game is in lobby state
+                        self.coords.append((player['x'], player['y']))
+                        self.players[i] = None
+                        self.lobbySize -= 1
+                        self.tokens.pop(player['userName'], None)
+                    elif not self.gameOver:
+                        # Game is in the game state
+                        # Small issue is that the player numbers change between
+                        # lobby and game, so requires a bit of work
+                        for i, playerObj in enumerate(self.playerObjects):
+                            if playerObj['userName'] == player['userName']:
+                                break
+                        self.playerObjects[i]["health"] = 0
+                        self.playerObjects[i]["bullets"] = []
+                        self.playerObjects[i]["alive"] = False
+
+                    # Remove the entry from the timeouts dict for this key
+                    removedPlayers.append(playerNum)
+        except Exception as e:
+            self.log('Check Timeouts Error: ' + str(e))
+        finally:
+            for playerNum in removedPlayers:
+                    self.playerStatus.pop(playerNum, None)
+            # Re run this method
+            self.timeoutTimer = Timer(5, self._checkTimeouts)
+            self.timeoutTimer.start()

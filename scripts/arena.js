@@ -171,7 +171,7 @@ handles updating data by sending and receiving from the <ArenaServer>
         var: maxAjaxCrashes
         The maximum number of consecutive crashes that are allowed to happen before the server is considered closed
     */
-    var maxAjaxCrashes = 5;
+    var maxAjaxCrashes = 10;
 
     /*
         var: ajaxCrashes
@@ -1357,7 +1357,7 @@ handles updating data by sending and receiving from the <ArenaServer>
         if(ajaxCrashes <= 0){
             window.onbeforeunload = null;
             window.onunload = null;
-            window.location = "../";
+            window.location = "../?" + req.responseText;
         }
     }
     /*
