@@ -617,7 +617,7 @@ class ArenaServer:
     def _lobbyQuit(self, client, address, msg):
         # Handles players leaving the lobby
         playerNum = int(msg.split("=")[1].split()[0])
-        if self.players[playerNum] != None:
+        if self.players[playerNum] is not None:
             if self.players[playerNum]["host"]:
                 for p in self.players:
                     if p and p != self.players[playerNum]:
@@ -700,8 +700,8 @@ class ArenaServer:
 
             if callback:
                 callback(client, address, msg)
-            elif repeat:
-                self._handleGameConnection(client, address, False)
+            # elif repeat:
+            #     self._handleGameConnection(client, address, False)
         except timeout:
             self.log('Timeout during ' + msg)
         finally:
@@ -774,6 +774,10 @@ class ArenaServer:
         # Handles game updates on the server
         # Set the ability to start up to False to prevent reload respawns
         try:
+            try:
+                msg += client.recv(4096, MSG_DONTWAIT).decode()
+            except:
+                pass
             data = loads(unquote(msg.split('update=')[1]))
         except ValueError:
             self.log('JSON error loading ' + unquote(msg.split('update=')[1]))
@@ -801,6 +805,7 @@ class ArenaServer:
                         player['userName'] == lobbyPlayer['userName']):
                     self.playerStatus[i] = True
                     break
+            print(unquote(msg))
 
     """/*
         Function: _gameQuit

@@ -4,9 +4,7 @@ from socket import gethostname, gethostbyname
 from threading import Thread
 from tkinter import *
 
-
-class GameServerPanel(ArenaPanel):
-    """/*
+"""/*
         Class: GameServerPanel
         <Panel> for graphically controlling the underlying <ArenaServer>
 
@@ -16,7 +14,8 @@ class GameServerPanel(ArenaPanel):
             - <ArenaPanel._initialiseVariables>
             - <ArenaPanel._initialiseChildren>
             - <ArenaPanel.close>
-    */"""
+*/"""
+class GameServerPanel(ArenaPanel):
 
     def _initialiseVariables(self, *args, **kwargs):
         """/*
@@ -149,7 +148,8 @@ class GameServerPanel(ArenaPanel):
                 # Update the switch
                 self._running = False
             else:
-                self._popup("Cannot Close Server",
+                self._popup(
+                    "Cannot Close Server",
                     "The game has started, so the server cannot be closed")
 
     """/*
@@ -157,7 +157,7 @@ class GameServerPanel(ArenaPanel):
         Reports whether this panel can close
     */"""
     def _canClose(self):
-        return self._server == None or not self._server.inGame()
+        return self._server is None or not self._server.inGame()
 
     """/*
         Function: _serviceClose

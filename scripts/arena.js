@@ -1271,6 +1271,7 @@ handles updating data by sending and receiving from the <ArenaServer>
             ifModified : 'true',
             success: function(json){
                 json.players.forEach(function(player){
+                    console.log(player);
                     var index = player.id;
                     if(index !== local){
                         players[index].update(player);
@@ -1506,7 +1507,7 @@ handles updating data by sending and receiving from the <ArenaServer>
                 break;
             }
         }
-        $.get(server, {gameOver: 1});
+        $.post(server, {gameOver: 1});
         window.onbeforeunload = null;
         window.onunload = null;
         window.alert('Game Over! Winner: ' + player.userName);

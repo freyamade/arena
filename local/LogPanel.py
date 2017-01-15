@@ -4,9 +4,7 @@ from datetime import datetime
 from os import path, makedirs
 from tkinter import *
 
-
-class LogPanel(ArenaPanel):
-    """/*
+"""/*
         Class: LogPanel
         <Panel> for displaying the server logs
 
@@ -16,7 +14,8 @@ class LogPanel(ArenaPanel):
             - <ArenaPanel._initialiseVariables>
             - <ArenaPanel._initialiseChildren>
             - <ArenaPanel.close>
-    */"""
+*/"""
+class LogPanel(ArenaPanel):
 
     def _initialiseVariables(self, *args, **kwargs):
         """/*
@@ -85,11 +84,11 @@ class LogPanel(ArenaPanel):
     def logMessage(self, message):
         # Takes in a message from an external source and adds it to the server
         # log with a time stamp
+        self._logfile.write(message + '\n')
         if 'JSON' in message:
             message = 'JSON error - Check log file for full details'
         timestamp = datetime.now().strftime("%H:%M:%S")
         log_message = '[%s] - %s' % (timestamp, message)
-        self._logfile.write(log_message + '\n')
         self._messages.append(log_message)
         self._numMessages += 1
         if self._numMessages > self._maxMessages:

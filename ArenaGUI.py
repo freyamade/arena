@@ -61,8 +61,17 @@ class ArenaGUI(Tk):
         */"""
         self._gameServerPanel = None
 
+        """/*
+            var: _httpPanel
+            Reference to this window's instance of HttpPanel
+
+            Used to call methods in the instance
+        */"""
+        self._httpPanel = None
+
         self._initialiseLogPanel()
         self._initialiseServerPanel()
+        self._initialiseHttpPanel()
 
     """/*
         Group: Private Methods
@@ -86,7 +95,18 @@ class ArenaGUI(Tk):
         self._gameServerPanel = GameServerPanel(
             self, "Status Controls", 300,
             325, logMessage=self._logPanel.logMessage)
-        self._gameServerPanel.pack(side=LEFT, expand=1, fill=BOTH)
+        self._gameServerPanel.pack(side=TOP, expand=1, fill=BOTH)
+
+    """/*
+        Function: _initaliseHttpPanel
+        Initialise an instance of HttpPanel, save it to _httpPanel,
+        and add it to the main window
+    */"""
+    def _initialiseHttpPanel(self):
+        self._httpPanel = HttpPanel(
+            self, "HttpServer", 300, 325
+        )
+        self._httpPanel.pack(side=TOP, expand=1, fill=BOTH)
 
     """/*
         Function: _close
