@@ -1358,7 +1358,7 @@ handles updating data by sending and receiving from the <ArenaServer>
         if(ajaxCrashes <= 0){
             window.onbeforeunload = null;
             window.onunload = null;
-            window.location = "../?" + req.responseText;
+            window.location = "../index.html?" + req.responseText;
         }
     }
     /*

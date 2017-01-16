@@ -774,10 +774,10 @@ class ArenaServer:
         # Handles game updates on the server
         # Set the ability to start up to False to prevent reload respawns
         try:
-            try:
-                msg += client.recv(4096, MSG_DONTWAIT).decode()
-            except:
-                pass
+            # try:
+            #     msg += client.recv(4096, MSG_DONTWAIT).decode()
+            # except:
+            #     pass
             data = loads(unquote(msg.split('update=')[1]))
         except ValueError:
             self.log('JSON error loading ' + unquote(msg.split('update=')[1]))
@@ -805,7 +805,8 @@ class ArenaServer:
                         player['userName'] == lobbyPlayer['userName']):
                     self.playerStatus[i] = True
                     break
-            print(unquote(msg))
+            with open("http.log", "a+") as fh:
+                fh.write(unquote(msg) + '\n')
 
     """/*
         Function: _gameQuit
