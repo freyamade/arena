@@ -1,0 +1,9 @@
+Conversion to WebSockets:
+    1. Add a websocket to the arena.js file
+    2. Add WebSocket Frame encoding and decoding to the server
+    3. Add a handshaking phase to the server
+        - During this phase all players should attempt to handshake with the server
+        - Once a player has successfully shaken hands, the websocket will wait for a message
+        - Once all players have shaken hands, server runs gameStartUp
+    4. Change the functionality of gameStartUp so that it sends the player data to each player as soon as it's needed
+    5. Once the player receives this message, change the receive message function to run update, and the updatePlayers function to send the current player

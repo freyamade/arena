@@ -1271,7 +1271,6 @@ handles updating data by sending and receiving from the <ArenaServer>
             ifModified : 'true',
             success: function(json){
                 json.players.forEach(function(player){
-                    console.log(player);
                     var index = player.id;
                     if(index !== local){
                         players[index].update(player);
@@ -1287,7 +1286,6 @@ handles updating data by sending and receiving from the <ArenaServer>
             },
             error: function(req, text){
                 checkIfServerCrashed(req);
-                console.log('error');
             }
         });
     }
@@ -1335,8 +1333,6 @@ handles updating data by sending and receiving from the <ArenaServer>
                 ajaxCrashes = maxAjaxCrashes;
             },
             error: function(req, text){
-                console.log('setup ' + req.responseText);
-                console.log('setup ' + text);
                 checkIfServerCrashed(req);
             }
         });

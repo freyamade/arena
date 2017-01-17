@@ -805,8 +805,6 @@ class ArenaServer:
                         player['userName'] == lobbyPlayer['userName']):
                     self.playerStatus[i] = True
                     break
-            with open("http.log", "a+") as fh:
-                fh.write(unquote(msg) + '\n')
 
     """/*
         Function: _gameQuit
