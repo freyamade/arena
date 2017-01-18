@@ -1,6 +1,11 @@
 from local import *
 from tkinter import *
-import argparse as arg
+from argparser import ArgumentParser
+
+parser = ArgumentParser("Arena admin panel")
+parser.add_argument("-g",help="Run GUI panel",dest="gui")
+
+
 """/*
     Class: ArenaGUI
     Main GUI interface for graphical management of the Arena backend
@@ -158,5 +163,6 @@ class ArenaGUI(Tk):
 
 
 if __name__ == '__main__':
-    a = ArenaGUI(None)
-    a.mainloop()
+    args = parser.parse_args()
+    #a = ArenaGUI(None)
+    #a.mainloop()
