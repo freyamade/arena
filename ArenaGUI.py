@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from local import *
 from tkinter import *
 from argparse import ArgumentParser
