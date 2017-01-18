@@ -1,5 +1,6 @@
 from local import *
 from tkinter import *
+import argparse as arg
 """/*
     Class: ArenaGUI
     Main GUI interface for graphical management of the Arena backend
