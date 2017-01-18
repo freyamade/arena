@@ -1,12 +1,12 @@
+from base64 import b64encode
 from datetime import datetime
-from hashlib import sha256
+from hashlib import sha256, sha1
 from json import dumps, loads
 import os
 from random import choice
 from select import select
 from socket import *
 from threading import Thread, Timer
-from urllib.request import unquote
 
 """/*
     Class: ArenaServer
@@ -66,6 +66,26 @@ from urllib.request import unquote
 class ArenaServer:
 
     """/*
+        Group: Class Constants
+        Constant values required for this class
+    */"""
+
+    """/*
+        var: WSGUID
+        The GUID required for WebSocket handshakes
+    */"""
+    WSGUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
+
+    """/*
+        var: WSHEADERS
+        The headers to be sent back to a handshaking WebSocket, with a hole for the auth key
+    */"""
+    WSHEADERS = ("HTTP/1.1 101 Switching Protocols\r\n"
+                 "Upgrade: websocket\r\nConnection: upgrade\r\n"
+                 "Sec-WebSocket-Accept: %s\r\n"
+                 "Sec-WebSocket-Protocol: exvo-arena\r\n\r\n")
+
+    """/*
         Group: Constructors
     */"""
 
@@ -98,7 +118,7 @@ class ArenaServer:
         */"""
         self.port = port
 
-        sock = socket(AF_INET, SOCK_STREAM)
+        sock = socket()
         sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
         sock.bind(('', self.port))
 
@@ -195,7 +215,7 @@ class ArenaServer:
             var: players
             Array of player JSON objects in the lobby
         */"""
-        self.players = [None for _ in range(4)]
+        self.players = [None, None, None, None]
 
         """/*
             var: tokens
@@ -243,7 +263,14 @@ class ArenaServer:
                 They are <Player> objects in JavaScript, but Python stores them
                 as dicts
         */"""
-        self.playerObjects = []
+        self.playerObjects = [None, None, None, None]
+
+        """/*
+            var: playerSockets
+            Map of socket objects related to the clients currently connected to the game mapped to the id of the player
+            that the socket is used by
+        */"""
+        self.playerSockets = {}
 
         """/*
             var: damages
@@ -275,6 +302,119 @@ class ArenaServer:
             checking
         */"""
         self.timeoutTimer = Timer(5, self._checkTimeouts)
+
+    """/*
+        Group: Static Helper Methods
+        Helper methods for the server that do not rely on any instance data
+    */"""
+
+    """/*
+        Function: _generateColour
+        Generate a random colour for a player
+
+        Returns:
+            string colour - Random 6-digit hexadecimal string representing a
+                            colour value
+    */"""
+    def _generateColour():
+        return ''.join([choice('0123456789ABCDEF') for _ in range(6)])
+
+    """/*
+        Group: WebSocket Handler Methods
+        Methods that control the handling of WebSockets
+    */"""
+
+    """/*
+        Function: _wsHandshake
+        Performs the handshaking operation with the passed socket
+
+        Parameters:
+            socket client - The socket object from which the handshaking request was received
+    */"""
+    def _wsHandshake(self, client):
+        clientHand = client.recv(4096).decode()
+        try:
+            protocol, playerNum = clientHand.split("Sec-WebSocket-Protocol: ")[-1].split('\r\n')[0].split(', ')
+            playerNum = int(playerNum)
+            if protocol == 'exvo-arena' and self.players[playerNum] is not None:
+                print('Handshake request from player', playerNum)
+                auth_key = clientHand.split("Sec-WebSocket-Key: ")[-1].split('\r\n')[0]
+                auth_key += ArenaServer.WSGUID
+                auth_key = b64encode(sha1(auth_key.encode()).digest()).decode()
+                hand_of_python = ArenaServer.WSHEADERS % (auth_key,)
+                client.sendall(hand_of_python.encode())
+                self.playerSockets[client] = playerNum
+            else:
+                raise ValueError("Invalid Protocol from websocket")
+        except:
+            self.log("Invalid WebSocket connection received")
+    """/*
+        Function: _wsEncode
+        Encodes the passed string into a WebSocket frame and returns the byte string generated
+        Static Method
+
+        Parameters:
+            string payload - The string to be sent to the client
+
+        Returns:
+            bytes frame - The WebSocket Frame to be sent to the client
+    */"""
+    def _wsEncode(payload):
+        frame = bytearray([129])
+        dataLength = len(payload)
+
+        if dataLength <= 125:
+            frame.append(dataLength)
+        elif 126 <= dataLength <= 65535:
+            frame.extend([
+                126,
+                (dataLength >> 8) & 255,
+                dataLength & 255
+            ])
+        else:
+            frame.extend([
+                127,
+                (dataLength >> 56) & 255,
+                (dataLength >> 48) & 255,
+                (dataLength >> 40) & 255,
+                (dataLength >> 32) & 255,
+                (dataLength >> 24) & 255,
+                (dataLength >> 16) & 255,
+                (dataLength >> 8) & 255,
+                dataLength & 255
+            ])
+        frame.extend(payload.encode())
+        return bytes(frame)
+
+    """/*
+        Function: _wsDecode
+        Decodes the passed WebSocket frame and returns the payload contained within
+        Static Method
+
+        Parameters:
+            bytes frame - The WebSocket frame received from the client
+
+        Returns:
+            string payload - The payload contained within the frame
+    */"""
+    def _wsDecode(frame):
+        frame = bytearray(frame)
+        length = frame[1] & 127
+        maskStart = 2
+        if length == 126:
+            maskStart = 4
+        elif length == 127:
+            maskStart = 10
+        dataStart = maskStart + 4
+        mask = frame[maskStart:dataStart]
+        i = dataStart
+        j = 0
+        payload = []
+        while i < len(frame):
+            payload.append(frame[i] ^ mask[j % 4])
+            i += 1
+            j += 1
+        return "".join(chr(byte) for byte in payload)
 
     """/*
         Group: Server Handler Methods
@@ -331,7 +471,8 @@ class ArenaServer:
                     client.settimeout(5)
                     Thread(
                         target=self._handleLobbyConnection,
-                        args=(client, address)).start()
+                        args=(client, address)
+                    ).start()
 
             # End the broadcast as it's not needed
             self._endBroadcast()
@@ -340,22 +481,48 @@ class ArenaServer:
             self.timeoutTimer.cancel()
 
             if not self.closed:
-                self.log('Game Starting')
+                # Handshake phase
+                self.log("Awaiting handshakes from all players")
+                playersInGame = len(list(filter(None, self.players)))
+                iterations = 0
+                print("Waiting for %i players" % playersInGame)
+                while len(self.playerSockets) < playersInGame and iterations < 10:
+                    connections, wlist, xlist = select([self.sock], [], [], 1)
+
+                    for connection in connections:
+                        client, address = connection.accept()
+                        Thread(
+                            target=self._wsHandshake,
+                            args=(client,)
+                        ).start()
+                    iterations += 1
+
+                self.log('Game Starting Up')
+                print([s.fileno() for s in self.playerSockets])
                 self.startTime = datetime.now()
+                self.log('Informing players of game starting')
+                # Run gameStart for each socket
+                for sock, playerNum in self.playerSockets.items():
+                    Thread(
+                        target=self._gameStartUp,
+                        args=(sock, playerNum)
+                    ).start()
 
                 # Start a new timer
                 self.timeoutTimer = Timer(5, self._checkTimeouts)
                 self.timeoutTimer.start()
+                print([s.fileno() for s in self.playerSockets])
+                self.log('Beginning Game Loop')
                 while not self.gameOver:
-                    connections, wlist, xlist = select(
-                        [self.sock], [], [], 0.05)
+                    print([s.fileno() for s in self.playerSockets], end=" ")
+                    clients, wlist, xlist = select(
+                        self.playerSockets, [], [], 0.05)
 
-                    for connection in connections:
-                        client, address = connection.accept()
-                        client.settimeout(10)
+                    for client in clients:
                         Thread(
                             target=self._handleGameConnection,
-                            args=(client, address)).start()
+                            args=(client,)
+                        ).start()
                 # Build the stats file. Name of the file will just be constant,
                 # server remembers only the latest game for now
                 self._generateStatsFile(datetime.now())
@@ -523,8 +690,10 @@ class ArenaServer:
             if player is None and not index_assigned:
                 player_index = i
                 index_assigned = True
-            elif player is not None and player['userName'] == username:
-                username_count += 1
+            elif player is not None:
+                userNameToTest = ''.join(player['userName'].split(' (')[:-1])
+                if userNameToTest == username:
+                    username_count += 1
         if username_count > 0:
             username += ' (%i)' % (username_count)
         self.log(username + ' has joined the lobby!')
@@ -537,7 +706,7 @@ class ArenaServer:
             'x': player_coords[0],
             'y': player_coords[1],
             'userName': username,
-            'colour': '#%s' % (self._generateColour()),
+            'colour': '#%s' % (ArenaServer._generateColour()),
             'local': False,
             'ready': False,
             'host': self.lobbySize == 0
@@ -670,6 +839,35 @@ class ArenaServer:
     */"""
 
     """/*
+        Function: _gameStartUp
+        Handler for players arriving at the game.html page for syncing up
+        player data
+
+        Parameters:
+            Socket socket - The client's socket to send data out through
+            int playerNum - The number of the player that coincides with the socket
+    */"""
+
+    def _gameStartUp(self, sock, playerNum):
+        # Send the player objects that exist to the player through the socket
+        players = []
+        for i in range(len(self.players)):
+            player = self.players[i]
+            if player is not None:
+                if i == playerNum:
+                    player['local'] = True
+                else:
+                    player['local'] = False
+
+                # Prepare self.damages
+                if i not in self.damages:
+                    self.damages[i] = []
+                players.append(player)
+        # Send the payload containing only the active players
+        data = {'players': players}
+        sock.sendall(ArenaServer._wsEncode(dumps(data)))
+
+    """/*
         Function: _handleGameConnection
         Method run in a separate thread to handle requests while the game is
         running
@@ -685,13 +883,11 @@ class ArenaServer:
             The results of <_gameStartUp> or <_gameUpdate>, depending on the
             message from the client
     */"""
-    def _handleGameConnection(self, client, address, repeat=True):
-        msg = client.recv(4096).decode()
+    def _handleGameConnection(self, client):
+        msg = ArenaServer._wsDecode(client.recv(4096))
         callback = None
         try:
-            if 'startUp' in msg:
-                callback = self._gameStartUp
-            elif 'update' in msg:
+            if 'update' in msg:
                 callback = self._gameUpdate
             elif 'gameOver' in msg:
                 callback = self._gameOver
@@ -699,9 +895,7 @@ class ArenaServer:
                 callback = self._gameQuit
 
             if callback:
-                callback(client, address, msg)
-            # elif repeat:
-            #     self._handleGameConnection(client, address, False)
+                callback(client, msg)
         except timeout:
             self.log('Timeout during ' + msg)
         finally:
@@ -710,59 +904,11 @@ class ArenaServer:
             self._updateStats()
 
     """/*
-        Function: _gameStartUp
-        Handler for players arriving at the game.html page for syncing up
-        player data
-
-        Parameters:
-            Socket client - The <Socket> to send response through
-            Tuple[string, int] address - <Tuple> containing address and port
-                                         of the client
-            string msg - The message that was sent by the client
-                         Includes the index of the player in the list of
-                         players
-
-        Returns:
-            array players - Starting data for all players, to be turned
-                            into <Player> objects in the JavaScript
-            boolean ready - True if all players have run this method, else
-                            False
-    */"""
-    def _gameStartUp(self, client, address, msg):
-        # Handles players arriving at the game screen
-        # Loop through the list of players, setting flags
-        # Only runs if canStartUp is True for the player's username
-        player_num = int(unquote(msg.split('startUp=')[1]))
-        # Check that this player can start up
-        username = self.players[player_num]['userName']
-        if self.canStartUp.get(username, False):
-            payload = []
-            ready = True
-            for i in range(len(self.players)):
-                player = self.players[i]
-                if player is not None:
-                    if i == player_num:
-                        player['local'] = True
-                        player['ready'] = True
-                    else:
-                        player['local'] = False
-                    # Prepare self.damages
-                    if i not in self.damages:
-                        self.damages[i] = []
-                    ready = ready and player['ready']
-                    payload.append(player)
-            # Send the payload containing only the active players
-            data = {'players': payload, 'ready': ready}
-            client.sendall(self._generateHttpResponse(dumps(data)))
-
-    """/*
         Function: _gameUpdate
         Handler for the AJAX updating player data for all players connected
 
         Parameters:
             Socket client - The <Socket> to send response through
-            Tuple[string, int] address - <Tuple> containing address and port
-                                         of the client
             string msg - The msg that was sent by the client
                          Includes a JSON string of the local players data,
                          and the damages done by the local player
@@ -770,17 +916,13 @@ class ArenaServer:
         Returns:
             array players - The current status of all players in the game
     */"""
-    def _gameUpdate(self, client, address, msg):
+    def _gameUpdate(self, client, msg):
         # Handles game updates on the server
         # Set the ability to start up to False to prevent reload respawns
         try:
-            # try:
-            #     msg += client.recv(4096, MSG_DONTWAIT).decode()
-            # except:
-            #     pass
-            data = loads(unquote(msg.split('update=')[1]))
+            data = loads(msg.split('update=')[1])
         except ValueError:
-            self.log('JSON error loading ' + unquote(msg.split('update=')[1]))
+            self.log('JSON error loading ' + msg.split('update=')[1])
         else:
             player = data['player']
             damages = data['damages']
@@ -791,10 +933,10 @@ class ArenaServer:
                 for damage in damages:
                     self.damages[damage['id']].append(damage['damage'])
             except IndexError:
-                self.playerObjects.append(player)
+                return  # This shouldn't happen
             data = {'players': self.playerObjects,
                     'damages': self.damages[player['id']]}
-            client.sendall(self._generateHttpResponse(dumps(data)))
+            client.sendall(ArenaServer._wsEncode(dumps(data)))
             self.damages[player['id']] = []
             # Set the player's startUp value to False
             self.canStartUp[player['userName']] = False
@@ -813,16 +955,14 @@ class ArenaServer:
 
         Parameters:
             Socket client - The <Socket> to send response through
-            Tuple[string, int] address - <Tuple> containing address and port
-                                         of the client
             string msg - The msg that was sent by the client
                          Includes the index of the player in the list of
                          players
     */"""
-    def _gameQuit(self, client, address, msg):
+    def _gameQuit(self, client, msg):
         # Handles players leaving the lobby
         playerNum = int(msg.split("=")[1].split()[0])
-        # self.log(self.players[playerNum]['userName'] + ' has left the game')
+        self.log(self.players[playerNum]['userName'] + ' has left the game')
         self.playerObjects[playerNum]["health"] = 0
         self.playerObjects[playerNum]["bullets"] = []
         self.playerObjects[playerNum]["alive"] = False
@@ -830,62 +970,34 @@ class ArenaServer:
         # Remove the entry from the timeouts dict for this key
         self.playerStatus.pop(playerNum, None)
 
+        # Close the client for this player
+        removed = []
+        for c, num in self.playerSockets.items():
+            if num == playerNum:
+                removed.append(c)
+                c.close()
+        for sock in removed:
+            self.playerSockets.pop(sock, None)
+
     """/*
         Function: _gameOver
         Handler for when the game ends
 
         Parameters:
             Socket client - The <Socket> to send response through
-            Tuple[string, int] address - <Tuple> containing address and port
-                                         of the client
             string msg - The msg that was sent by the client
                          States that the game is over
     */"""
-    def _gameOver(self, client, address, msg):
+    def _gameOver(self, client, msg):
         # Set gameOver to be True, javascript will redirect to game over screen
         # Once game is over server will write to shelve file in the main thread
         # with the data from the game
         self.gameOver = True
 
     """/*
-        Group: Helper Methods
-        Additional methods to help out in the server
+        Group: Stats Functions
+        Functions controlling the updating of game stats and the generating of results files
     */"""
-
-    """/*
-        Function: _generateHttpResponse
-        Generates a HTTP response with the headers in the list
-        Headers can easily be added or removed as needed
-
-        Parameters:
-            string body - The body of the response to be sent back to the
-                          client.
-
-        Returns:
-            string response - An encoded string containing the headers and the
-                              body that was passed.
-    */"""
-    def _generateHttpResponse(self, body):
-        headers = [
-            "HTTP/1.1 200 OK\r\n",  # Do not remove
-            "Content-Type: application/json\r\n",  # Do not remove
-            # Optional Headers start here
-            "Access-Control-Allow-Origin: *\r\n",
-            # End optional headers
-            "\r\n"  # Do not remove
-        ]
-        return (''.join(headers) + body).encode()
-
-    """/*
-        Function: _generateColour
-        Generate a random colour for a player
-
-        Returns:
-            string colour - Random 6-digit hexadecimal string representing a
-                            colour value
-    */"""
-    def _generateColour(self):
-        return ''.join([choice('0123456789ABCDEF') for x in range(6)])
 
     """/*
         Function: _updateStats
@@ -894,8 +1006,7 @@ class ArenaServer:
     def _updateStats(self):
         for player in self.playerObjects:
             # Check if player died, and append it to the list of players
-            if (player['id'] not in self.playerStats and
-                    not player['alive']):
+            if player is not None and player['id'] not in self.playerStats and not player['alive']:
                 self.playerStats.append(player['id'])
 
     """/*
@@ -975,19 +1086,17 @@ class ArenaServer:
                         self.tokens.pop(player['userName'], None)
                     elif not self.gameOver:
                         # Game is in the game state
-                        # Small issue is that the player numbers change between
-                        # lobby and game, so requires a bit of work
-                        for i, playerObj in enumerate(self.playerObjects):
-                            if playerObj['userName'] == player['userName']:
-                                break
-                        self.playerObjects[i]["health"] = 0
-                        self.playerObjects[i]["bullets"] = []
-                        self.playerObjects[i]["alive"] = False
+                        # Issue of difference in player numbers between states removed
+                        # So this should work just by playerNum
+                        self.playerObjects[playerNum]["health"] = 0
+                        self.playerObjects[playerNum]["bullets"] = []
+                        self.playerObjects[playerNum]["alive"] = False
 
                     # Remove the entry from the timeouts dict for this key
                     removedPlayers.append(playerNum)
         except Exception as e:
-            self.log('Check Timeouts Error: ' + str(e))
+            # self.log('Check Timeouts Error: ' + str(e))
+            pass
         finally:
             for playerNum in removedPlayers:
                     self.playerStatus.pop(playerNum, None)

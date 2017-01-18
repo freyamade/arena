@@ -59,7 +59,7 @@ class LogPanel(ArenaPanel):
             This is used to store a complete log of everything that happened
         */"""
         self._logfile = open(
-            './logs/arena_log_' + datetime.now().strftime('%d%m%Y%H%M%S'),
+            './logs/arena_' + datetime.now().strftime('%d%m%Y%H%M%S') + '.log',
             'w', 1)
 
     def _initialiseChildren(self):
