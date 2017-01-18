@@ -1,9 +1,9 @@
 from local import *
 from tkinter import *
-from argparser import ArgumentParser
+from argparse import ArgumentParser
 
-parser = ArgumentParser("Arena admin panel")
-parser.add_argument("-g",help="Run GUI panel",dest="gui")
+parser = ArgumentParser("Arena admin panel",argument_default="-g")
+parser.add_argument("-g",help="Run GUI panel",dest="gui",action="store_true")
 
 
 """/*
@@ -164,5 +164,7 @@ class ArenaGUI(Tk):
 
 if __name__ == '__main__':
     args = parser.parse_args()
-    #a = ArenaGUI(None)
-    #a.mainloop()
+    print(args.gui)
+    if args.gui:
+        a = ArenaGUI(None)
+        a.mainloop()
