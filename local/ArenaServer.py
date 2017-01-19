@@ -79,7 +79,7 @@ class ArenaServer:
             func callback - A function to be called when the server closes
             str password - A password for the server. Defaults to None
     */"""
-    def __init__(self, port, log, callback, password=None):
+    def __init__(self, port=44444, log=print, callback=lambda x: x, password=None):
         """/*
             Group: Server Socket Variables
                 Variables maintaining the state of the socket the server
