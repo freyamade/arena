@@ -166,7 +166,6 @@ class ArenaGUI(Tk):
 
 if __name__ == '__main__':
     args = parser.parse_args()
-    print(args)
     if args.gui:
         server = ArenaGUI(None)
         server.mainloop()
