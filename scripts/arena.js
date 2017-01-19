@@ -1153,11 +1153,10 @@ handles updating data by sending and receiving from the <ArenaServer>
         sock.onmessage = function(message){
             var json = JSON.parse(message.data);
             playersSetup(json);
-            return false;
         };
         //Set the onerror and onclose to just quit
-        sock.onerror = quitGame;
-        sock.onclose = quitGame;
+        // sock.onerror = quitGame;
+        // sock.onclose = quitGame;
 
         //Create obstacles
         createObstacles();
@@ -1167,7 +1166,7 @@ handles updating data by sending and receiving from the <ArenaServer>
         };
         window.onunload = function(e){
             sock.send('quit=' + local);
-            sock.close()
+            // sock.close()
         }
     }
 
@@ -1182,7 +1181,6 @@ handles updating data by sending and receiving from the <ArenaServer>
         sock.onmessage = function(message){
             var json = JSON.parse(message.data);
             updatePlayers(json);
-            return false;  //To keep connection alive
         };
         //Run the ajax update every 16ms, just before the update method
         ajaxInterval = window.setInterval(sendUpdate, 16);
@@ -1243,7 +1241,6 @@ handles updating data by sending and receiving from the <ArenaServer>
         The send half of the updating function. Generates a payload and sends it to the server
      */
     function sendUpdate(){
-        console.log("Sending update");
         var damageData = [];
         damages.forEach(function(damage){
             if(!damage.sent){
@@ -1287,18 +1284,23 @@ handles updating data by sending and receiving from the <ArenaServer>
         playersAlive = 0;
         //Update the players array with the json data
         json.players.forEach(function(player, index){
-            players[index] = new Player(
-                player.x, player.y, index, player.colour, player.userName);
-            if(player.local){
-                local = index;
-            }
-            playersAlive += 1;
+            if(player !== null) {
+                players[index] = new Player(
+                    player.x, player.y, index, player.colour, player.userName);
+                if (player.local) {
+                    local = index;
+                }
+                playersAlive += 1;
 
-            //Display the player in the scoreboard
-            var row = $(displayRows[index]);
-            row.css({'color': player.colour});
-            row.find('.name-container').html(player.userName);
+                //Display the player in the scoreboard
+                var row = $(displayRows[index]);
+                row.css({'color': player.colour});
+                row.find('.name-container').html(player.userName);
+            }
         });
+        console.log(players);
+        console.log(getCookie("playerNum"));
+        console.log(local);
         //Update the displays with health and bullets
         updateDisplays();
 
@@ -1315,7 +1317,7 @@ handles updating data by sending and receiving from the <ArenaServer>
         window.onunload = null;
         try{
             sock.send("quit=" + local);
-            sock.close();
+            // sock.close();
         }
         catch(e){}
         window.location = "../";

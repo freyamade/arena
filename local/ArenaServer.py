@@ -119,6 +119,7 @@ class ArenaServer:
         self.port = port
 
         sock = socket()
+        sock.setblocking(0)
         sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
         sock.bind(('', self.port))
 
@@ -346,8 +347,9 @@ class ArenaServer:
                 self.playerSockets[client] = playerNum
             else:
                 raise ValueError("Invalid Protocol from websocket")
-        except:
+        except ValueError:
             self.log("Invalid WebSocket connection received")
+            print(clientHand)
     """/*
         Function: _wsEncode
         Encodes the passed string into a WebSocket frame and returns the byte string generated
@@ -453,7 +455,7 @@ class ArenaServer:
         self.log(
             'Server starting up at %s on port %s' % (self.host, self.port))
         self.log('Password Protected: ' + str(self.password is not None))
-        self.sock.listen(10)
+        self.sock.listen()
         self.log('Lobby Open')
 
         # Run the broadcast
@@ -488,19 +490,20 @@ class ArenaServer:
                 print("Waiting for %i players" % playersInGame)
                 while len(self.playerSockets) < playersInGame and iterations < 10:
                     connections, wlist, xlist = select([self.sock], [], [], 1)
-
+                    print(connections)
                     for connection in connections:
                         client, address = connection.accept()
-                        Thread(
-                            target=self._wsHandshake,
-                            args=(client,)
-                        ).start()
-                    iterations += 1
+                        # Thread(
+                        #     target=self._wsHandshake,
+                        #     args=(client,)
+                        # ).start()
+                        print(connection)
+                        print(client.recv(4096))
+                        print(datetime.now().strftime("%H:%M:%S"))
+                    # iterations += 1
 
-                self.log('Game Starting Up')
-                print([s.fileno() for s in self.playerSockets])
-                self.startTime = datetime.now()
                 self.log('Informing players of game starting')
+                self.startTime = datetime.now()
                 # Run gameStart for each socket
                 for sock, playerNum in self.playerSockets.items():
                     Thread(
@@ -511,10 +514,8 @@ class ArenaServer:
                 # Start a new timer
                 self.timeoutTimer = Timer(5, self._checkTimeouts)
                 self.timeoutTimer.start()
-                print([s.fileno() for s in self.playerSockets])
                 self.log('Beginning Game Loop')
                 while not self.gameOver:
-                    print([s.fileno() for s in self.playerSockets], end=" ")
                     clients, wlist, xlist = select(
                         self.playerSockets, [], [], 0.05)
 
@@ -691,7 +692,11 @@ class ArenaServer:
                 player_index = i
                 index_assigned = True
             elif player is not None:
-                userNameToTest = ''.join(player['userName'].split(' (')[:-1])
+                data = player['userName'].split(' (')
+                if len(data) <= 2:
+                    userNameToTest = data[0]
+                else:
+                    userNameToTest = ''.join(data[:-1])
                 if userNameToTest == username:
                     username_count += 1
         if username_count > 0:
@@ -850,7 +855,6 @@ class ArenaServer:
 
     def _gameStartUp(self, sock, playerNum):
         # Send the player objects that exist to the player through the socket
-        players = []
         for i in range(len(self.players)):
             player = self.players[i]
             if player is not None:
@@ -862,9 +866,8 @@ class ArenaServer:
                 # Prepare self.damages
                 if i not in self.damages:
                     self.damages[i] = []
-                players.append(player)
         # Send the payload containing only the active players
-        data = {'players': players}
+        data = {'players': self.players}
         sock.sendall(ArenaServer._wsEncode(dumps(data)))
 
     """/*
