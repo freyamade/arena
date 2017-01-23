@@ -1,5 +1,13 @@
+#!/usr/bin/env python3
+from argparse import ArgumentParser
 from local import *
 from tkinter import *
+
+parser = ArgumentParser("Arena admin panel")
+parser.add_argument("-g","--gui",help="Run GUI panel",dest="gui",action="store_true")
+parser.add_argument("-p","--password",help="Change password",dest="password")
+parser.add_argument("-o","--port",help="Set up port",dest="port")
+parser.add_argument("-c","-console",help="Run with no GUI",dest="console",action="store_true")
 """/*
     Class: ArenaGUI
     Main GUI interface for graphical management of the Arena backend
@@ -177,5 +185,22 @@ class ArenaGUI(Tk):
 
 
 if __name__ == '__main__':
-    a = ArenaGUI(None)
-    a.mainloop()
+    args = parser.parse_args()
+    if args.gui:
+        server = ArenaGUI(None)
+        server.mainloop()
+    elif args.console:
+        if args.port and args.password:
+            server = ArenaServer.ArenaServer(port=port,password=password)
+        elif args.port:
+            server = ArenaServer.ArenaServer(port)
+        elif args.password:
+            server = ArenaServer.ArenaServer(password)
+        else:
+            server = ArenaServer.ArenaServer()
+        server.listen()
+    else:
+        server = ArenaGUI(None)
+        server.mainloop()
+    
+
