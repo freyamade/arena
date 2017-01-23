@@ -488,9 +488,9 @@ class ArenaServer:
                 print("Waiting for %i players" % playersInGame)
                 while len(self.playerSockets) < playersInGame and iterations < 10:
                     connections, wlist, xlist = select([self.sock], [], [], 1)
-
                     for connection in connections:
                         client, address = connection.accept()
+                        print(client)
                         Thread(
                             target=self._wsHandshake,
                             args=(client,)
@@ -498,7 +498,6 @@ class ArenaServer:
                     iterations += 1
 
                 self.log('Game Starting Up')
-                print([s.fileno() for s in self.playerSockets])
                 self.startTime = datetime.now()
                 self.log('Informing players of game starting')
                 # Run gameStart for each socket
@@ -511,7 +510,6 @@ class ArenaServer:
                 # Start a new timer
                 self.timeoutTimer = Timer(5, self._checkTimeouts)
                 self.timeoutTimer.start()
-                print([s.fileno() for s in self.playerSockets])
                 self.log('Beginning Game Loop')
                 while not self.gameOver:
                     print([s.fileno() for s in self.playerSockets], end=" ")
