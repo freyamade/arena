@@ -349,7 +349,6 @@ class ArenaServer:
                 raise ValueError("Invalid Protocol from websocket")
         except ValueError:
             self.log("Invalid WebSocket connection received")
-            print(clientHand)
     """/*
         Function: _wsEncode
         Encodes the passed string into a WebSocket frame and returns the byte string generated
@@ -390,11 +389,11 @@ class ArenaServer:
 
     """/*
         Function: _wsDecode
-        Decodes the passed WebSocket frame and returns the payload contained within
+        Decodes the passed websocket and returns the decoded payload
         Static Method
 
         Parameters:
-            bytes frame - The WebSocket frame received from the client
+            bytes frame - The websocket frame to be decoded
 
         Returns:
             string payload - The payload contained within the frame
@@ -494,14 +493,11 @@ class ArenaServer:
                     print(connections)
                     for connection in connections:
                         client, address = connection.accept()
-                        # Thread(
-                        #     target=self._wsHandshake,
-                        #     args=(client,)
-                        # ).start()
-                        print(connection)
-                        print(client.recv(4096))
-                        print(datetime.now().strftime("%H:%M:%S"))
-                    # iterations += 1
+                        Thread(
+                            target=self._wsHandshake,
+                            args=(client,)
+                        ).start()
+                    iterations += 1
 
                 self.log('Informing players of game starting')
                 self.startTime = datetime.now()
@@ -903,7 +899,6 @@ class ArenaServer:
         except timeout:
             self.log('Timeout during ' + msg)
         finally:
-            client.close()
             # Update after the client is closed to keep speed
             self._updateStats()
 

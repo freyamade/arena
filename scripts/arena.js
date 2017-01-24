@@ -168,16 +168,16 @@ handles updating data by sending and receiving from the <ArenaServer>
     var ajaxInterval;
 
     /*
-        var: maxAjaxCrashes
+        var: maxSocketFailures
         The maximum number of consecutive crashes that are allowed to happen before the server is considered closed
     */
-    var maxAjaxCrashes = 10;
+    var maxSocketFailures = 10;
 
     /*
-        var: ajaxCrashes
-        The current number of consecutive crashes that are allowed
+        var: socketFailures
+        The current number of consecutive crashes that have occurred
     */
-    var ajaxCrashes = maxAjaxCrashes;
+    var socketFailures = 0;
 
     /*
         var: playersAlive
@@ -1145,18 +1145,8 @@ handles updating data by sending and receiving from the <ArenaServer>
         displayRows = $('tbody tr');
         server = 'ws://' + getCookie('gameAddress');
 
-        //Set up the websocket and prepare for handshaking
-        //Sends the current player num so the server can associate the socket to the player number
-        sock = new WebSocket(server, ['exvo-arena', getCookie('playerNum')]);
-        //Attach listener to socket for playerSetup method
-        //Socket will be sent the details for the start of the game
-        sock.onmessage = function(message){
-            var json = JSON.parse(message.data);
-            playersSetup(json);
-        };
-        //Set the onerror and onclose to just quit
-        // sock.onerror = quitGame;
-        // sock.onclose = quitGame;
+        //Set up socket
+        createSocket();
 
         //Create obstacles
         createObstacles();
@@ -1166,8 +1156,36 @@ handles updating data by sending and receiving from the <ArenaServer>
         };
         window.onunload = function(e){
             sock.send('quit=' + local);
-            // sock.close()
+            sock.close()
         }
+    }
+
+    /*
+        Function: createSocket
+        Creates the required socket for the game and stores it in the global sock variable
+    */
+    function createSocket(){
+        //Set up the websocket and prepare for handshaking
+        //Sends the current player num so the server can associate the socket to the player number
+        sock = new WebSocket(server, ['exvo-arena', getCookie('playerNum')]);
+        //Attach listener to socket for playerSetup method
+        //Socket will be sent the details for the start of the game
+        sock.onmessage = function(message){
+            var json = JSON.parse(message.data);
+            playersSetup(json);
+        };
+
+        //Set the onerror and onclose
+        // sock.onerror = function(){
+        //     if(socketFailures === maxSocketFailures){
+        //         quitGame();
+        //     }
+        //     else{
+        //         socketFailures++;
+        //         createSocket();
+        //     }
+        // };
+        // sock.onclose = sock.onerror;
     }
 
     /*
@@ -1317,7 +1335,7 @@ handles updating data by sending and receiving from the <ArenaServer>
         window.onunload = null;
         try{
             sock.send("quit=" + local);
-            // sock.close();
+            sock.close();
         }
         catch(e){}
         window.location = "../";
