@@ -970,13 +970,9 @@ class ArenaServer:
         self.playerStatus.pop(playerNum, None)
 
         # Close the client for this player
-        removed = []
-        for c, num in self.playerSockets.items():
-            if num == playerNum:
-                removed.append(c)
-                c.close()
-        for sock in removed:
-            self.playerSockets.pop(sock, None)
+        for sock in self.playerSockets.keys():
+            if self.playerSockets[sock] == playerNum:
+                del self.playerSockets[sock]
 
     """/*
         Function: _gameOver
