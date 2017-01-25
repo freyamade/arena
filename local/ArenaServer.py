@@ -454,7 +454,7 @@ class ArenaServer:
         self.log(
             'Server starting up at %s on port %s' % (self.host, self.port))
         self.log('Password Protected: ' + str(self.password is not None))
-        self.sock.listen()
+        self.sock.listen(16)
         self.log('Lobby Open')
 
         # Run the broadcast
@@ -487,7 +487,7 @@ class ArenaServer:
                 playersInGame = len(list(filter(None, self.players)))
                 iterations = 0
                 print("Waiting for %i players" % playersInGame)
-                while len(self.playerSockets) < playersInGame and iterations < 10:
+                while len(self.playerSockets) < playersInGame: # and iterations < 10:
                     connections, wlist, xlist = select([self.sock], [], [], 1)
 
                     print(connections)
@@ -497,7 +497,7 @@ class ArenaServer:
                             target=self._wsHandshake,
                             args=(client,)
                         ).start()
-                    iterations += 1
+                    # iterations += 1
 
                 self.log('Informing players of game starting')
                 self.startTime = datetime.now()

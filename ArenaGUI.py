@@ -79,7 +79,7 @@ class ArenaGUI(Tk):
 
         self._initialiseLogPanel()
         self._initialiseServerPanel()
-        self._initialiseHttpPanel()
+        #self._initialiseHttpPanel()
 
     """/*
         Group: Private Methods
