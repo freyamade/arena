@@ -17,7 +17,7 @@ handles updating data by sending and receiving from the <ArenaServer>
         Number of seconds between game ready and game start
     */
     var countdownTimer = 3;
-    
+
     /*
         Group: HTML Element Variables
     */
@@ -219,7 +219,7 @@ handles updating data by sending and receiving from the <ArenaServer>
             /*
                 var: size
                 Size of this Bullet
-                
+
                 Used in <collisionBetween>
             */
             size : bulletSize,
@@ -491,7 +491,7 @@ handles updating data by sending and receiving from the <ArenaServer>
         Group: Constructors
     */
 
-    /*      
+    /*
         Constructor: Player
         Construct a new Player instance
 
@@ -511,11 +511,11 @@ handles updating data by sending and receiving from the <ArenaServer>
             /*
                 var: size
                 Size of this Player in pixels
-                
+
                 Used in <collisionBetween>
             */
             size : playerSize,
-            
+
             /*
                 var: x
                 x coordinate of the top left corner of this Player
@@ -985,7 +985,7 @@ handles updating data by sending and receiving from the <ArenaServer>
                 y coordinate of the end of this Obstacle
             */
             y2 : y2,
-            
+
             /*
                 var: horizontal
                 True if <y1> == <y2>; used for determining <Bullet> bounces
@@ -1169,6 +1169,7 @@ handles updating data by sending and receiving from the <ArenaServer>
         //Sends the current player num so the server can associate the socket to the player number
         sock = new WebSocket(server, ['exvo-arena', getCookie('playerNum')]);
         //Attach listener to socket for playerSetup method
+
         //Socket will be sent the details for the start of the game
         sock.onmessage = function(message){
             var json = JSON.parse(message.data);
@@ -1176,16 +1177,19 @@ handles updating data by sending and receiving from the <ArenaServer>
         };
 
         //Set the onerror and onclose
-        // sock.onerror = function(){
-        //     if(socketFailures === maxSocketFailures){
-        //         quitGame();
-        //     }
-        //     else{
-        //         socketFailures++;
-        //         createSocket();
-        //     }
-        // };
+        sock.onerror = function(){
+            if(socketFailures === maxSocketFailures){
+                quitGame();
+            }
+            else{
+                socketFailures++;
+                createSocket();
+            }
+        };
         // sock.onclose = sock.onerror;
+
+	// Now attempt to send a message to check if the client has connected successfully
+	sock.send('exvo-arena-ready');
     }
 
     /*

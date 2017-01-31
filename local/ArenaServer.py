@@ -344,7 +344,18 @@ class ArenaServer:
                 auth_key = b64encode(sha1(auth_key.encode()).digest()).decode()
                 hand_of_python = ArenaServer.WSHEADERS % (auth_key,)
                 client.sendall(hand_of_python.encode())
-                self.playerSockets[client] = playerNum
+
+                # Wait for a completion message before adding the socket to the list
+                iterations = 0
+                while iterations < 10:
+                    responses, wlist, xlist = select([client], [], [], 1)
+
+                    for response in responses:
+                        data = ArenaServer._wsDecode(response.recv(4096))
+                        if data == 'exvo-arena-ready':
+                            self.playerSockets[client] = playerNum
+                            break
+                    iterations += 1
             else:
                 raise ValueError("Invalid Protocol from websocket")
         except ValueError:
@@ -487,7 +498,7 @@ class ArenaServer:
                 playersInGame = len(list(filter(None, self.players)))
                 iterations = 0
                 print("Waiting for %i players" % playersInGame)
-                while len(self.playerSockets) < playersInGame: # and iterations < 10:
+                while len(self.playerSockets) < playersInGame:  # and iterations < 10:
                     connections, wlist, xlist = select([self.sock], [], [], 1)
 
                     print(connections)
@@ -514,7 +525,7 @@ class ArenaServer:
                 self.log('Beginning Game Loop')
                 while not self.gameOver:
                     clients, wlist, xlist = select(
-                        self.playerSockets, [], [], 0.05)
+                        list(self.playerSockets.keys()), [], [], 0.05)
 
                     for client in clients:
                         Thread(
@@ -919,7 +930,16 @@ class ArenaServer:
         # Handles game updates on the server
         # Set the ability to start up to False to prevent reload respawns
         try:
-            data = loads(msg.split('update=')[1])
+            data = msg.split('update=')[1]
+            count = 1
+            i = 1
+            while count > 0:
+                if data[i] == '{':
+                    count += 1
+                elif data[i] == '}':
+                    count -= 1
+                i += 1
+            data = loads(data[:i])
         except ValueError:
             self.log('JSON error loading ' + msg.split('update=')[1])
         else:
