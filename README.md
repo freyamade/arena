@@ -1,11 +1,13 @@
 ![Arena Logo](images/logo.png)  
 # Arena: A Game of Tanks
-Arena is a 2 - 4 player browser based shoot-em-up, written in JavaScript with a Python backend.  
+Arena is a 2 - 4 player browser based shoot-em-up, written in JavaScript with a custom written Python3 server.  
 It's fast-paced fun for your local network.  
 
 All you need is a browser and Python3.4 or greater. Running your server is easy;
     ```python3 ArenaGUI.py``` will provide you with a GUI  
-_We are working on creating a simplistic CLI version_
+
+A basic CLI version is now available, use ```python3 ArenaGUI.py --help``` for more info.
+_We will be improving this at a later stage_
 
 # Installation
 Installation is simple:  
@@ -15,7 +17,7 @@ Installation is simple:
 
 # Contribute
 Read our [Contribution Guide](https://github.com/ExceptionalVoid/Arena/wiki/How-to-Contribute)  
-Also, see our [Developer Docs](https://exceptionalvoid.github.io/Arena)
+Also, see our [Developer Docs](https://docs.exceptionalvoid.com/Arena)
 
 [_Issue Tracker_](https://github.com/ExceptionalVoid/Arena/issues)  
 [_Source Code_](https://github.com/ExceptionalVoid/Arena)
