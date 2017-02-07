@@ -17,7 +17,7 @@ Installation is simple:
 
 # Contribute
 Read our [Contribution Guide](https://github.com/ExceptionalVoid/Arena/wiki/How-to-Contribute)  
-Also, see our [Developer Docs](https://docs.exceptionalvoid.com/Arena)
+Also, see our [Developer Docs](https://www.exceptionalvoid.com/docs/Arena)
 
 [_Issue Tracker_](https://github.com/ExceptionalVoid/Arena/issues)  
 [_Source Code_](https://github.com/ExceptionalVoid/Arena)
