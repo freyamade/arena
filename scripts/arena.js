@@ -23,7 +23,7 @@ handles updating data by sending and receiving from the <ArenaServer>
         Number of seconds between game ready and game start
     */
     var countdownTimer = 3;
-    
+
     /*
         Group: HTML Element Variables
     */
@@ -219,7 +219,7 @@ handles updating data by sending and receiving from the <ArenaServer>
             /*
                 var: size
                 Size of this Bullet
-                
+
                 Used in <collisionBetween>
             */
             size : bulletSize,
@@ -491,7 +491,7 @@ handles updating data by sending and receiving from the <ArenaServer>
         Group: Constructors
     */
 
-    /*      
+    /*
         Constructor: Player
         Construct a new Player instance
 
@@ -511,11 +511,11 @@ handles updating data by sending and receiving from the <ArenaServer>
             /*
                 var: size
                 Size of this Player in pixels
-                
+
                 Used in <collisionBetween>
             */
             size : playerSize,
-            
+
             /*
                 var: x
                 x coordinate of the top left corner of this Player
@@ -837,6 +837,23 @@ handles updating data by sending and receiving from the <ArenaServer>
 
                 //Not sure if we need it since I'm not sure people will get too
                 //close to other players
+                /*
+                needs co-ords of other players
+                basic maths:
+                case x: ((this.x + this.size) >= other.x) &&
+                        (this.x <= (other.x  + other.size))
+                case y: ((this.y + this.size) >= other.y) &&
+                        (this.y <= (other.y+other.size))
+                */
+                for(var i = 0;i< players.length;i++){
+                  var other = players[i];
+                  if(((this.x + this.size) >= other.x) &&
+                      (this.x <=(other.x + other.size))&&
+                     ((this.y + this.size)>= other.y)  &&
+                      (this.y <= (other.y+other.size))){
+                        this.health -= (1/60);
+                      }
+                }
             },
 
             /*
@@ -985,7 +1002,7 @@ handles updating data by sending and receiving from the <ArenaServer>
                 y coordinate of the end of this Obstacle
             */
             y2 : y2,
-            
+
             /*
                 var: horizontal
                 True if <y1> == <y2>; used for determining <Bullet> bounces
@@ -1384,7 +1401,7 @@ handles updating data by sending and receiving from the <ArenaServer>
 
     /*
         Function: draw
-        Clears the canvas, the sends calls to each <Obstacle> and <Player> object in 
+        Clears the canvas, the sends calls to each <Obstacle> and <Player> object in
         <obstacles> and <players> respectively, asking them to draw themselves.
 
         As we see in <Player.draw>, each Player handles the drawing of their <Bullet>s
