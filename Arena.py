@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from argparse import ArgumentParser
+from sys import exit
 from local import *
 from tkinter import *
 
@@ -79,7 +80,6 @@ class ArenaGUI(Tk):
 
         self._initialiseLogPanel()
         self._initialiseServerPanel()
-        self._initialiseHttpPanel()
 
     """/*
         Group: Private Methods
@@ -102,20 +102,8 @@ class ArenaGUI(Tk):
     def _initialiseServerPanel(self):
         self._gameServerPanel = GameServerPanel(
             self, "Status Controls", 300,
-            325, logMessage=self._logPanel.logMessage)
+            625, logMessage=self._logPanel.logMessage)
         self._gameServerPanel.pack(side=TOP, expand=1, fill=BOTH)
-
-    """/*
-        Function: _initaliseHttpPanel
-        Initialise an instance of HttpPanel, save it to _httpPanel,
-        and add it to the main window
-    */"""
-    def _initialiseHttpPanel(self):
-        self._httpPanel = HttpPanel(
-            self, "HttpServer", 300, 325,
-            log=self._logPanel.logMessage
-        )
-        self._httpPanel.pack(side=TOP, expand=1, fill=BOTH)
 
     """/*
         Function: _close
@@ -187,19 +175,45 @@ class ArenaGUI(Tk):
 
 if __name__ == '__main__':
     args = parser.parse_args()
+
+    # Gui Specified
     if args.gui:
         server = ArenaGUI(None)
         server.mainloop()
+
+    # Console Specified
     elif args.console:
-        if args.port and args.password:
-            server = ArenaServer.ArenaServer(port=port,password=password)
-        elif args.port:
-            server = ArenaServer.ArenaServer(port)
-        elif args.password:
-            server = ArenaServer.ArenaServer(password)
-        else:
-            server = ArenaServer.ArenaServer()
-        server.listen()
+        from datetime import datetime
+        try:
+            logfile = open(
+                './logs/arena_' + datetime.now().strftime(
+                    '%d%m%Y%H%M%S') + '.log',
+                'w', 1)
+
+            # Write a method to handle logging
+            def consoleLog(s):
+                logfile.write(s)
+                print(s)
+        except IOError:
+            print("Error when attempting to open logfile")
+            log = print
+        kwargs = {'log': consoleLog}
+        if args.port:
+            try:
+                kwargs['port'] = int(args.port)
+            except:
+                log('Port was not an integer')
+                exit(1)
+        if args.password:
+            kwargs['password'] = args.password
+
+        server = ArenaServer.ArenaServer(**kwargs)
+        try:
+            server.listen()
+        except KeyboardInterrupt:
+            server.close()
+
+    # Assume GUI if no args passed
     else:
         server = ArenaGUI(None)
         server.mainloop()

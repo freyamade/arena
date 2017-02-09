@@ -95,11 +95,11 @@ class ArenaServer:
 
         Parameters:
             int port - The port that the server will listen on
+            str password - A password for the server. Defaults to None
             func log - A function to log messages into the <LogPanel>
             func callback - A function to be called when the server closes
-            str password - A password for the server. Defaults to None
     */"""
-    def __init__(self, port=44444, log=print, callback=lambda x: x, password=None):
+    def __init__(self, port=44444, password=None, log=print, callback=lambda x: x):
         """/*
             Group: Server Socket Variables
                 Variables maintaining the state of the socket the server
@@ -304,6 +304,8 @@ class ArenaServer:
         */"""
         self.timeoutTimer = Timer(5, self._checkTimeouts)
 
+        self.log("Localhost IP: " + str(gethostbyname(gethostname())))
+
     """/*
         Group: Static Helper Methods
         Helper methods for the server that do not rely on any instance data
@@ -338,7 +340,6 @@ class ArenaServer:
             protocol, playerNum = clientHand.split("Sec-WebSocket-Protocol: ")[-1].split('\r\n')[0].split(', ')
             playerNum = int(playerNum)
             if protocol == 'exvo-arena' and self.players[playerNum] is not None:
-                print('Handshake request from player', playerNum)
                 auth_key = clientHand.split("Sec-WebSocket-Key: ")[-1].split('\r\n')[0]
                 auth_key += ArenaServer.WSGUID
                 auth_key = b64encode(sha1(auth_key.encode()).digest()).decode()
@@ -483,7 +484,8 @@ class ArenaServer:
                     client.settimeout(5)
                     Thread(
                         target=self._handleLobbyConnection,
-                        args=(client, address)
+                        args=(client, address),
+                        daemon=True
                     ).start()
 
             # End the broadcast as it's not needed
@@ -497,18 +499,16 @@ class ArenaServer:
                 self.log("Awaiting handshakes from all players")
                 playersInGame = len(list(filter(None, self.players)))
                 iterations = 0
-                print("Waiting for %i players" % playersInGame)
-                while len(self.playerSockets) < playersInGame:  # and iterations < 10:
+                while len(self.playerSockets) < playersInGame:
                     connections, wlist, xlist = select([self.sock], [], [], 1)
 
-                    print(connections)
                     for connection in connections:
                         client, address = connection.accept()
                         Thread(
                             target=self._wsHandshake,
-                            args=(client,)
+                            args=(client,),
+                            daemon=True
                         ).start()
-                    # iterations += 1
 
                 self.log('Informing players of game starting')
                 self.startTime = datetime.now()
@@ -516,7 +516,8 @@ class ArenaServer:
                 for sock, playerNum in self.playerSockets.items():
                     Thread(
                         target=self._gameStartUp,
-                        args=(sock, playerNum)
+                        args=(sock, playerNum),
+                        daemon=True
                     ).start()
 
                 # Start a new timer
@@ -530,7 +531,8 @@ class ArenaServer:
                     for client in clients:
                         Thread(
                             target=self._handleGameConnection,
-                            args=(client,)
+                            args=(client,),
+                            daemon=True
                         ).start()
                 # Build the stats file. Name of the file will just be constant,
                 # server remembers only the latest game for now

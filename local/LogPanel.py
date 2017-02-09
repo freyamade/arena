@@ -49,18 +49,23 @@ class LogPanel(ArenaPanel):
         self._maxMessages = 42
 
         # Ensure a logs directory exists
-        if not path.exists('./logs'):
-            makedirs('./logs')
+        try:
+            if not path.exists('./logs'):
+                makedirs('./logs')
 
-        """/*
-            var: _logfile
-            The file that all log messages will be written out to.
+            """/*
+                var: _logfile
+                The file that all log messages will be written out to.
 
-            This is used to store a complete log of everything that happened
-        */"""
-        self._logfile = open(
-            './logs/arena_' + datetime.now().strftime('%d%m%Y%H%M%S') + '.log',
-            'w', 1)
+                This is used to store a complete log of everything that happened
+            */"""
+            self._logfile = open(
+                './logs/arena_' + datetime.now().strftime(
+                    '%d%m%Y%H%M%S') + '.log',
+                'w', 1)
+        except IOError:
+            print("Error when attempting to open logfile")
+            self._logfile = None
 
     def _initialiseChildren(self):
         logLabel = Label(
@@ -84,15 +89,16 @@ class LogPanel(ArenaPanel):
     def logMessage(self, message):
         # Takes in a message from an external source and adds it to the server
         # log with a time stamp
-        self._logfile.write(message + '\n')
-        if 'JSON' in message:
-            message = 'JSON error - Check log file for full details'
-        timestamp = datetime.now().strftime("%H:%M:%S")
-        log_message = '[%s] - %s' % (timestamp, message)
-        self._messages.append(log_message)
-        self._numMessages += 1
-        if self._numMessages > self._maxMessages:
-            self._messages.popleft()
-            self._numMessages -= 1
+        if self._logfile is not None:
+            self._logfile.write(message + '\n')
+            if 'JSON' in message:
+                message = 'JSON error - Check log file for full details'
+            timestamp = datetime.now().strftime("%H:%M:%S")
+            log_message = '[%s] - %s' % (timestamp, message)
+            self._messages.append(log_message)
+            self._numMessages += 1
+            if self._numMessages > self._maxMessages:
+                self._messages.popleft()
+                self._numMessages -= 1
 
-        self._log.set('\n'.join(self._messages))
+            self._log.set('\n'.join(self._messages))
