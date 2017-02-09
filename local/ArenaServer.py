@@ -499,7 +499,7 @@ class ArenaServer:
                 self.log("Awaiting handshakes from all players")
                 playersInGame = len(list(filter(None, self.players)))
                 iterations = 0
-                while len(self.playerSockets) < playersInGame:
+                while len(self.playerSockets) < playersInGame and iterations < 20:
                     connections, wlist, xlist = select([self.sock], [], [], 1)
 
                     for connection in connections:
@@ -510,6 +510,8 @@ class ArenaServer:
                             daemon=True
                         ).start()
 
+                    iterations += 1
+                
                 self.log('Informing players of game starting')
                 self.startTime = datetime.now()
                 # Run gameStart for each socket

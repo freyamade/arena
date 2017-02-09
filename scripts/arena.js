@@ -171,7 +171,7 @@ handles updating data by sending and receiving from the <ArenaServer>
         var: maxSocketFailures
         The maximum number of consecutive crashes that are allowed to happen before the server is considered closed
     */
-    var maxSocketFailures = 10;
+    var maxSocketFailures = 20;
 
     /*
         var: socketFailures
