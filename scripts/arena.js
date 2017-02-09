@@ -13,12 +13,6 @@ handles updating data by sending and receiving from the <ArenaServer>
     */
 
     /*
-        var: ready
-        False until all players are ready
-    */
-    var ready = false;
-
-    /*
         var: countdownTimer
         Number of seconds between game ready and game start
     */
@@ -156,6 +150,12 @@ handles updating data by sending and receiving from the <ArenaServer>
     var server;
 
     /*
+        var: sock
+        WebSocket object used to connect to the server
+     */
+    var sock;
+
+    /*
         var: updateInterval
         The id of the <Interval> used for running methods updating the canvas / game state
     */
@@ -168,16 +168,16 @@ handles updating data by sending and receiving from the <ArenaServer>
     var ajaxInterval;
 
     /*
-        var: maxAjaxCrashes
+        var: maxSocketFailures
         The maximum number of consecutive crashes that are allowed to happen before the server is considered closed
     */
-    var maxAjaxCrashes = 10;
+    var maxSocketFailures = 20;
 
     /*
-        var: ajaxCrashes
-        The current number of consecutive crashes that are allowed
+        var: socketFailures
+        The current number of consecutive crashes that have occurred
     */
-    var ajaxCrashes = maxAjaxCrashes;
+    var socketFailures = 0;
 
     /*
         var: playersAlive
@@ -1164,42 +1164,54 @@ handles updating data by sending and receiving from the <ArenaServer>
         height = canvas.height;
         width = canvas.width;
         displayRows = $('tbody tr');
-        server = 'http://' + getCookie('gameAddress');
+        server = 'ws://' + getCookie('gameAddress');
+
+        //Set up socket
+        createSocket();
 
         //Create obstacles
         createObstacles();
-
-        //Query for new players every .1s until game is ready
-        updateInterval = window.setInterval(readyGame, 100);
 
         window.onbeforeunload = function(e){
             return 'Are you sure you want to leave?';
         };
         window.onunload = function(e){
-            $.ajax({
-                type: 'GET',
-                async: false,
-                url: server,
-                data: 'quit=' + local
-            });
+            sock.send('quit=' + local);
+            sock.close()
         }
     }
 
     /*
-        Function: readyGame
-        Checks if the game is ready to be played.
-
-        If so, starts the game. Else, queries the server again
+        Function: createSocket
+        Creates the required socket for the game and stores it in the global sock variable
     */
-    function readyGame(){
-        if(ready){
-            clearInterval(updateInterval);
-            //Set up game
-            startGame();
-        }
-        else{
-            //Query for initial player data
-            playersSetup();
+    function createSocket(){
+        //Set up the websocket and prepare for handshaking
+        //Sends the current player num so the server can associate the socket to the player number
+        sock = new WebSocket(server, ['exvo-arena', getCookie('playerNum')]);
+        //Attach listener to socket for playerSetup method
+
+        //Socket will be sent the details for the start of the game
+        sock.onmessage = function(message){
+            var json = JSON.parse(message.data);
+            playersSetup(json);
+        };
+
+        //Set the onerror and onclose
+        sock.onerror = function(){
+            if(socketFailures === maxSocketFailures){
+                quitGame();
+            }
+            else{
+                socketFailures++;
+                createSocket();
+            }
+        };
+        // sock.onclose = sock.onerror;
+
+	// Now attempt to send a message to check if the client has connected successfully
+        sock.onopen = function(){
+            sock.send('exvo-arena-ready');
         }
     }
 
@@ -1210,9 +1222,13 @@ handles updating data by sending and receiving from the <ArenaServer>
         Calls <updatePlayers>, and initialises an <Interval> to call <countdown> every second
     */
     function startGame(){
+        //Replace the onmessage for the socket
+        sock.onmessage = function(message){
+            var json = JSON.parse(message.data);
+            updatePlayers(json);
+        };
         //Run the ajax update every 16ms, just before the update method
-        ajaxInterval = window.setInterval(updatePlayers, 16);
-        updatePlayers(); //Will call itself after success, or after 1 second on failure
+        ajaxInterval = window.setInterval(sendUpdate, 16);
         //Run the countdown and then start the game
         updateInterval = setInterval(countdown, 1000);
     }
@@ -1266,11 +1282,10 @@ handles updating data by sending and receiving from the <ArenaServer>
     */
 
     /*
-        Function: updatePlayers
-        Sends the local <Player> data to the server, receives the updated data for all Players and updates each Player accordingly
-    */
-    function updatePlayers(){
-        //Pull data from the server and put it into the players list
+        Function: sendUpdate
+        The send half of the updating function. Generates a payload and sends it to the server
+     */
+    function sendUpdate(){
         var damageData = [];
         damages.forEach(function(damage){
             if(!damage.sent){
@@ -1282,105 +1297,77 @@ handles updating data by sending and receiving from the <ArenaServer>
             player : players[local],
             damages : damageData
         };
-        $.ajax({
-            url: server,
-            dataType: 'json',
-            type: 'POST',
-            data: {
-                update: JSON.stringify(data)
-            },
-            ifModified : 'true',
-            success: function(json){
-                json.players.forEach(function(player){
-                    var index = player.id;
-                    if(index !== local){
-                        players[index].update(player);
-                    }
-                    else{
-                        //The damages that come in through the json are for this player only
-                        players[index].updateDamages(json.damages);
-                    }
-                });
-                players[local].damagingBullets = [];
-                //Reset the number of allowed errors
-                ajaxCrashes = maxAjaxCrashes;
-            },
-            error: function(req, text){
-                checkIfServerCrashed(req);
-                console.log('error');
+        sock.send('update=' + JSON.stringify(data));
+    }
+
+    /*
+        Function: updatePlayers
+        Receives the updated data for all Players and updates each Player accordingly
+    */
+    function updatePlayers(json){
+        //Pull data from the server and put it into the players list
+        json.players.forEach(function(player){
+            if(player !== null) {
+                var index = player.id;
+                if (index !== local) {
+                    players[index].update(player);
+                }
+                else {
+                    //The damages that come in through the json are for this player only
+                    players[index].updateDamages(json.damages);
+                }
             }
         });
+        players[local].damagingBullets = [];
     }
 
     /*
         Function: playersSetup
         Get the lobby data from the server for all the players in the game, create new <Player> objects using that data and populate <players> with these objects
     */
-    function playersSetup(){
-        //In the MP version, read in POST data and populate players accordingly
-        //In SP, just creates players for testing
-        $.ajax({
-            url: server,
-            dataType : 'json',
-            type: 'POST',
-            data : {
-                startUp : getCookie('playerNum')
-            },
-            ifModified: 'true',
-            success : function(json){
-                playersAlive = 0;
-                //Update the players array with the json data
-                json.players.forEach(function(player, index){
-                    players[index] = new Player(
-                        player.x, player.y, index, player.colour, player.userName);
-                    if(player.local){
-                        local = index;
-                    }
-                    playersAlive += 1;
-                });
-                //Draw the names of players into the table
-                players.forEach(function(player, index){
-                    if(player !== null && player.isAlive()){
-                        var row = $(displayRows[player.id]);
-                        row.css({'color': player.colour});
-                        row.find('.name-container').html(player.getUserName());
-                    }
-                });
-                //Check if the game is ready
-                ready = json.ready;
-                //Update the displays with health and bullets
-                updateDisplays();
+    function playersSetup(json){
+        playersAlive = 0;
+        //Update the players array with the json data
+        json.players.forEach(function(player, index){
+            if(player !== null) {
+                players[index] = new Player(
+                    player.x, player.y, index, player.colour, player.userName);
+                if (player.local) {
+                    local = index;
+                }
+                playersAlive += 1;
 
-                //Reset the allowed errors
-                ajaxCrashes = maxAjaxCrashes;
-            },
-            error: function(req, text){
-                console.log('setup ' + req.responseText);
-                console.log('setup ' + text);
-                checkIfServerCrashed(req);
+                //Display the player in the scoreboard
+                var row = $(displayRows[index]);
+                row.css({'color': player.colour});
+                row.find('.name-container').html(player.userName);
             }
         });
+        console.log(players);
+        console.log(getCookie("playerNum"));
+        console.log(local);
+        //Update the displays with health and bullets
+        updateDisplays();
+
+        //Start the game, as everybody should be ready at this point
+        startGame();
     }
 
     /*
-        Function: checkIfServerCrashed
-        Checks if the server has crashed if an AJAX request fails
-        Allow a maximum number of crashes in a row before kicking player from game
-
-        Parameters:
-            jqXHR req - <jqXHR> object containing the response information
+        Function: quitGame
+        Run the necessary setup to close the game, informing the server and closing the socket
     */
-    function checkIfServerCrashed(req){
-        if (req.readyState < 4 || req.status >= 500){
-            ajaxCrashes -= 1;
+    function quitGame(){
+        window.onbeforeunload = null;
+        window.onunload = null;
+        try{
+            sock.send("quit=" + local);
+            sock.close();
         }
-        // Now check if we have exceeded our allowance
-        if(ajaxCrashes <= 0){
-            window.onbeforeunload = null;
-            window.onunload = null;
-            window.location = "../?" + req.responseText;
-        }
+        catch(e){}
+        window.location = "../";
     }
+
     /*
         Group: Game Loop Functions
     */
@@ -1414,11 +1401,11 @@ handles updating data by sending and receiving from the <ArenaServer>
         context.clearRect(0, 0, width, height);
         //Draw the walls
     	context.strokeStyle = 'blue';
-        obstacles.forEach(function(obstacle, index){
+        obstacles.forEach(function(obstacle){
             obstacle.draw();
         });
         //Draw the players, which draw their own bullets
-        players.forEach(function(player, index){
+        players.forEach(function(player){
             if(player !== null && player.isAlive()){
                 player.draw();
             }
@@ -1431,7 +1418,7 @@ handles updating data by sending and receiving from the <ArenaServer>
     */
     function updateDisplays(){
         //Ensure the displays are up to date
-        players.forEach(function(player, index){
+        players.forEach(function(player){
             if(player !== null){
                 var health = player.isAlive() ? player.getHealth() : 0;
                 var row = $(displayRows[player.id]);
@@ -1505,7 +1492,7 @@ handles updating data by sending and receiving from the <ArenaServer>
             if(player !== null && player.isAlive()){
                 playersAlive ++;
             }
-        })
+        });
         if(playersAlive === 1){
             gameOver();
         }
@@ -1527,11 +1514,9 @@ handles updating data by sending and receiving from the <ArenaServer>
                 break;
             }
         }
-        $.get(server, {gameOver: 1});
-        window.onbeforeunload = null;
-        window.onunload = null;
         window.alert('Game Over! Winner: ' + player.userName);
-        window.location = '../';
+        sock.send("gameOver=1");
+        quitGame();
     }
 
 }());
