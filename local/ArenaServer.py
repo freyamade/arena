@@ -899,23 +899,26 @@ class ArenaServer:
             message from the client
     */"""
     def _handleGameConnection(self, client):
-        msg = ArenaServer._wsDecode(client.recv(4096))
-        callback = None
         try:
-            if 'update' in msg:
-                callback = self._gameUpdate
-            elif 'gameOver' in msg:
-                callback = self._gameOver
-            elif 'quit' in msg:
-                callback = self._gameQuit
+            msg = ArenaServer._wsDecode(client.recv(4096))
+            callback = None
+            try:
+                if 'update' in msg:
+                    callback = self._gameUpdate
+                elif 'gameOver' in msg:
+                    callback = self._gameOver
+                elif 'quit' in msg:
+                    callback = self._gameQuit
 
-            if callback:
-                callback(client, msg)
-        except timeout:
-            self.log('Timeout during ' + msg)
-        finally:
-            # Update after the client is closed to keep speed
-            self._updateStats()
+                if callback:
+                    callback(client, msg)
+            except timeout:
+                self.log('Timeout during ' + msg)
+            finally:
+                # Update after the client is closed to keep speed
+                self._updateStats()
+        except:
+            pass
 
     """/*
         Function: _gameUpdate
