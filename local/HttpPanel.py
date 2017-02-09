@@ -2,6 +2,7 @@ from http.server import CGIHTTPRequestHandler, HTTPServer
 
 from .ArenaPanel import ArenaPanel
 from tkinter import *
+from threading import Thread
 
 """/*
     Class: HttpPanel
@@ -49,6 +50,12 @@ class HttpPanel(ArenaPanel):
         */"""
         self._statusLabel = None
 
+        """/*
+            var: _log
+            A method used to log messages from this panel
+        */"""
+        self._log = kwargs.get('log', print)
+
     def _initialiseChildren(self):
         # Just need to add a label and button
         self._statusLabel = Label(self, textvariable=self._status, foreground="red")
@@ -70,11 +77,15 @@ class HttpPanel(ArenaPanel):
             self._buttonLabel.set("Stop")
             self._statusLabel.config(foreground="green")
             self._running = True
+            Thread(target=self.server.serve_forever).start()
+            self._log("Http Server running on port 8000")
         else:
             self._status.set("Server Stopped")
             self._buttonLabel.set("Start")
             self._statusLabel.config(foreground="red")
             self._running = False
+            self.server.shutdown()
+            self._log("Http Server Shutdown")
 
     def close(self):
         if self._running:

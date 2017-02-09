@@ -1189,7 +1189,9 @@ handles updating data by sending and receiving from the <ArenaServer>
         // sock.onclose = sock.onerror;
 
 	// Now attempt to send a message to check if the client has connected successfully
-	sock.send('exvo-arena-ready');
+        sock.onopen = function(){
+            sock.send('exvo-arena-ready');
+        }
     }
 
     /*

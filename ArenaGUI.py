@@ -79,7 +79,7 @@ class ArenaGUI(Tk):
 
         self._initialiseLogPanel()
         self._initialiseServerPanel()
-        #self._initialiseHttpPanel()
+        self._initialiseHttpPanel()
 
     """/*
         Group: Private Methods
@@ -112,7 +112,8 @@ class ArenaGUI(Tk):
     */"""
     def _initialiseHttpPanel(self):
         self._httpPanel = HttpPanel(
-            self, "HttpServer", 300, 325
+            self, "HttpServer", 300, 325,
+            log=self._logPanel.logMessage
         )
         self._httpPanel.pack(side=TOP, expand=1, fill=BOTH)
 
