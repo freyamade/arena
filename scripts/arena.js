@@ -754,6 +754,7 @@ handles updating data by sending and receiving from the <ArenaServer>
                 context.fillRect(this.x, this.y, this.size, this.size);
                 //Test Collisions
                 this.wallCollision();
+                this.playerCollision();
                 //Update position for next frame
                 this.x += this.xChange;
                 this.y += this.yChange;
@@ -837,6 +838,26 @@ handles updating data by sending and receiving from the <ArenaServer>
 
                 //Not sure if we need it since I'm not sure people will get too
                 //close to other players
+                /*
+                needs co-ords of other players
+                basic maths:
+                case x: ((this.x + this.size) >= other.x) &&
+                        (this.x <= (other.x  + other.size))
+                case y: ((this.y + this.size) >= other.y) &&
+                        (this.y <= (other.y+other.size))
+                */
+                for(var i = 0;i< players.length;i++){
+                    if(i !== local){
+                        var other = players[i];
+                        if(other === null) continue;
+                        if(((this.x + this.size) >= other.x) &&
+                            (this.x <=(other.x + other.size)) &&
+                            ((this.y + this.size)>= other.y) &&
+                            (this.y <= (other.y+other.size))){
+                                this.takeDamage(1/60);
+                        }
+                    }
+                }
             },
 
             /*
@@ -869,7 +890,7 @@ handles updating data by sending and receiving from the <ArenaServer>
             takeDamage : function(damage){
                 this.health = (this.health - damage).toFixed(2);
                 //Check if player is still alive
-                if(this.health <= 0){
+                if(this.health < 0){
                     this.destroy();
                 }
             },
@@ -1371,7 +1392,7 @@ handles updating data by sending and receiving from the <ArenaServer>
 
     /*
         Function: draw
-        Clears the canvas, the sends calls to each <Obstacle> and <Player> object in 
+        Clears the canvas, the sends calls to each <Obstacle> and <Player> object in
         <obstacles> and <players> respectively, asking them to draw themselves.
 
         As we see in <Player.draw>, each Player handles the drawing of their <Bullet>s
