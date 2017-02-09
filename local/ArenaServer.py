@@ -617,6 +617,7 @@ class ArenaServer:
     def _lobbyQuit(self, client, address, msg):
         # Handles players leaving the lobby
         playerNum = int(msg.split("=")[1].split()[0])
+        print("Quit from player", playerNum)
         if self.players[playerNum] != None:
             if self.players[playerNum]["host"]:
                 for p in self.players:
