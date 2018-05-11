@@ -25,5 +25,11 @@ Also, see our [Developer Docs](https://www.exceptionalvoid.com/docs/Arena)
 # Support
 If you find a bug, either submit an issue at the Issue Tracker link above, or send us an email at support@exceptionalvoid.com
 
+# Contributors
+- [Ciaran Broderick](https://github.com/crnbrdrck) creator, maintainer
+- [Grzegorz Ikwanty](https://github.com/gelo147) developer
+- [Herakliusz Lipiec](https://github.com/hero24) developer
+- [Brian Twohig](https://github.com/btwohig) graphics
+
 # License
 Arena is licensed under the MIT license
