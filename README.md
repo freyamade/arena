@@ -23,7 +23,7 @@ Also, see our [Developer Docs](https://www.exceptionalvoid.com/docs/Arena)
 [_Source Code_](https://github.com/ExceptionalVoid/Arena)
 
 # Support
-If you find a bug, either submit an issue at the Issue Tracker link above, or send us an email at support@exceptionalvoid.com
+If you find a bug, either submit an issue at the Issue Tracker link above
 
 # Contributors
 - [Ciaran Broderick](https://github.com/crnbrdrck) creator, maintainer
